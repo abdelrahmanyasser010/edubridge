@@ -75,6 +75,9 @@ export default function FinancePage() {
     void createFinanceRefundForPayment(paymentId, refundAmount, reason);
   };
 
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+
   return (
     <div className="dashboard-shell">
       <Sidebar />
@@ -101,39 +104,27 @@ export default function FinancePage() {
             ))}
           </div>
 
-          {/* Direct Financial Actions */}
-          <div className="card" style={{ marginBottom: 20 }}>
-            <div className="card-header">
-              <div>
-                <div className="card-title">إجراءات مالية مباشرة</div>
-                <div className="card-subtitle">إنشاء فواتير دراسية جديدة، تسجيل سداد نقدي أو إلكتروني، وإدراج خصومات للطلاب</div>
-              </div>
+          {/* Action Bar */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>سجل العمليات المالية والمطالبات</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>إصدار المطالبات، تسجيل دفعات السداد، ومتابعة الخصومات</div>
             </div>
-            <div className="card-body">
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr", gap: 10, marginBottom: 12 }}>
-                <select className="form-select" value={effectiveStudentId} onChange={(event) => setSelectedStudentId(event.target.value)}>
-                  {(backendStudents.length ? backendStudents : students).slice(0, 30).map((student) => (
-                    <option key={student.id} value={student.id}>{student.name} - {student.studentCode}</option>
-                  ))}
-                </select>
-                <input className="form-input" value={financeTitle} onChange={(event) => setFinanceTitle(event.target.value)} placeholder="عنوان الفاتورة أو الخصم" />
-                <input className="form-input" type="number" min="1" value={financeAmount} onChange={(event) => setFinanceAmount(event.target.value)} placeholder="المبلغ (ر.س)" />
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button className="btn btn-primary btn-sm" onClick={() => void createFinanceInvoiceForStudent(effectiveStudentId, financeTitle, amountValue)}>
-                  <Plus size={14} /> إنشاء فاتورة جديدة
-                </button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="btn btn-primary" onClick={() => setShowInvoiceModal(true)}>
+                <Plus size={15} /> إصدار فاتورة جديدة
+              </button>
+              {payableInvoice && (
                 <button
-                  className="btn btn-green btn-sm"
-                  disabled={!payableInvoice}
-                  onClick={() => payableInvoice && void recordFinancePayment(payableInvoice.id, Math.min(amountValue, payableInvoice.remaining ?? payableInvoice.total ?? amountValue))}
+                  className="btn btn-green"
+                  onClick={() => void recordFinancePayment(payableInvoice.id, Math.min(amountValue, payableInvoice.remaining ?? payableInvoice.total ?? amountValue))}
                 >
-                  <CreditCard size={14} /> تسجيل دفعة لأول فاتورة مستحقة
+                  <CreditCard size={15} /> تسجيل دفعة سداد
                 </button>
-                <button className="btn btn-outline btn-sm" onClick={() => void createFinanceDiscountForStudent(effectiveStudentId, financeTitle, amountValue)}>
-                  <Percent size={14} /> تطبيق خصم للطالب
-                </button>
-              </div>
+              )}
+              <button className="btn btn-outline" onClick={() => setShowDiscountModal(true)}>
+                <Percent size={15} /> تطبيق خصم لطالب
+              </button>
             </div>
           </div>
 
@@ -243,6 +234,133 @@ export default function FinancePage() {
         </main>
         <Footer />
       </div>
+
+      {/* Create Invoice Modal */}
+      {showInvoiceModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>إصدار فاتورة / مطالبة دراسية جديدة</div>
+              <button onClick={() => setShowInvoiceModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)" }}>✕</button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void createFinanceInvoiceForStudent(effectiveStudentId, financeTitle, amountValue);
+                setShowInvoiceModal(false);
+              }}
+              style={{ display: "flex", flexDirection: "column", gap: 14 }}
+            >
+              <div className="form-group">
+                <label className="form-label">الطالب المستهدف</label>
+                <select className="form-select" value={effectiveStudentId} onChange={(e) => setSelectedStudentId(e.target.value)}>
+                  {(backendStudents.length ? backendStudents : students).slice(0, 50).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.studentCode || s.sectionName})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">بند الفاتورة أو الرسوم</label>
+                <input
+                  required
+                  className="form-input"
+                  placeholder="مثال: رسوم دراسية للفصل الثاني / رسوم النقل المدرسي"
+                  value={financeTitle}
+                  onChange={(e) => setFinanceTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">المبلغ المطلوب (ر.س)</label>
+                <input
+                  required
+                  type="number"
+                  min="1"
+                  className="form-input"
+                  placeholder="500"
+                  value={financeAmount}
+                  onChange={(e) => setFinanceAmount(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+                  <Plus size={15} /> إصدار واعتماد الفاتورة
+                </button>
+                <button type="button" onClick={() => setShowInvoiceModal(false)} className="btn btn-ghost">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Apply Discount Modal */}
+      {showDiscountModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>تطبيق خصم أو منحة لطالب</div>
+              <button onClick={() => setShowDiscountModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)" }}>✕</button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void createFinanceDiscountForStudent(effectiveStudentId, financeTitle, amountValue);
+                setShowDiscountModal(false);
+              }}
+              style={{ display: "flex", flexDirection: "column", gap: 14 }}
+            >
+              <div className="form-group">
+                <label className="form-label">الطالب المستفيد</label>
+                <select className="form-select" value={effectiveStudentId} onChange={(e) => setSelectedStudentId(e.target.value)}>
+                  {(backendStudents.length ? backendStudents : students).slice(0, 50).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.studentCode || s.sectionName})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">سبب / مسمى الخصم</label>
+                <input
+                  required
+                  className="form-input"
+                  placeholder="مثال: خصم تفوق أكاديمي / خصم الإخوة"
+                  value={financeTitle}
+                  onChange={(e) => setFinanceTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">مبلغ الخصم (ر.س)</label>
+                <input
+                  required
+                  type="number"
+                  min="1"
+                  className="form-input"
+                  placeholder="250"
+                  value={financeAmount}
+                  onChange={(e) => setFinanceAmount(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+                  <Percent size={15} /> اعتماد الخصم للطالب
+                </button>
+                <button type="button" onClick={() => setShowDiscountModal(false)} className="btn btn-ghost">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
