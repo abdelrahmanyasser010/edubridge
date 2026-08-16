@@ -75,6 +75,7 @@ class TeacherSubstitutionManager
             ->filter(function (Teacher $teacher) use ($session): bool {
                 try {
                     $this->ensureNoTeacherTimeConflict($session, (int) $teacher->id);
+
                     return true;
                 } catch (ConflictHttpException) {
                     return false;

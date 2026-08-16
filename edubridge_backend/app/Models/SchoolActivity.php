@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class SchoolActivity extends Model
 {
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PUBLISHED = 'published';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_COMPLETED = 'completed';
 
     protected $connection = 'tenant';

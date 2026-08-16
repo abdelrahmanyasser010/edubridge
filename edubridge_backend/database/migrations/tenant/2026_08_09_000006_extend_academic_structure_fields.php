@@ -19,10 +19,12 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::connection('tenant')->table('grade_level_subject', function (Blueprint $table) { $table->dropColumn('weekly_periods'); });
+        Schema::connection('tenant')->table('grade_level_subject', function (Blueprint $table) {
+            $table->dropColumn('weekly_periods');
+        });
         Schema::connection('tenant')->table('sections', function (Blueprint $table) {
             $table->dropForeign(['homeroom_teacher_id']);
-            $table->dropColumn(['room_number','homeroom_teacher_id']);
+            $table->dropColumn(['room_number', 'homeroom_teacher_id']);
         });
     }
 };

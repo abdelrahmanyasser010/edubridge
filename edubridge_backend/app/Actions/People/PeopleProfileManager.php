@@ -2,6 +2,7 @@
 
 namespace App\Actions\People;
 
+use App\Actions\Rbac\TenantUserRoleSynchronizer;
 use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\StudentParent;
@@ -12,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class PeopleProfileManager
 {
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly TenantUserRoleSynchronizer $synchronizer,
+    ) {}
+
     /** @param array<string, mixed> $data */
     public function createTeacher(array $data): Teacher
     {
@@ -107,10 +113,14 @@ class PeopleProfileManager
             ['name' => $name, 'password' => str()->password(32), 'status' => 'active'],
         );
 
+        $schoolId = $this->tenantContext->schoolId();
+
         DB::connection('central')->table('school_user')->updateOrInsert(
-            ['school_id' => app(TenantContext::class)->schoolId(), 'user_id' => $user->id],
+            ['school_id' => $schoolId, 'user_id' => $user->id],
             ['role_key' => $roleKey, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
         );
+
+        $this->synchronizer->syncUser($schoolId, (int) $user->id);
 
         return (int) $user->id;
     }

@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ActivityRegistration extends Model
 {
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_AWAITING_PAYMENT = 'awaiting_payment';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $connection = 'tenant';

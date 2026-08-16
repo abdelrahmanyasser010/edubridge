@@ -57,6 +57,7 @@ class TransportController
     {
         Gate::authorize('transport.view');
         $user = $request->user() ?? throw new AuthenticationException;
+
         return ApiResponse::data(
             $manager->liveStatusForParent(Student::query()->findOrFail($student), (int) $user->id),
         );

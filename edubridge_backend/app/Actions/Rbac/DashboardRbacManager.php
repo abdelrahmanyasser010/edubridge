@@ -3,6 +3,7 @@
 namespace App\Actions\Rbac;
 
 use App\Auth\ApplicationAccessMatrix;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Tenancy\TenantContext;
@@ -17,6 +18,7 @@ class DashboardRbacManager
     public function __construct(
         private readonly AuditLogger $audit,
         private readonly TenantContext $tenantContext,
+        private readonly TenantUserRoleSynchronizer $synchronizer,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -159,8 +161,10 @@ class DashboardRbacManager
 
         $user->save();
 
+        $schoolId = $this->tenantContext->schoolId();
+
         DB::connection('central')->table('school_user')->updateOrInsert(
-            ['school_id' => $this->tenantContext->schoolId(), 'user_id' => $user->id],
+            ['school_id' => $schoolId, 'user_id' => $user->id],
             [
                 'role_key' => $role['key'],
                 'status' => $data['status'] ?? 'active',
@@ -169,7 +173,7 @@ class DashboardRbacManager
             ],
         );
 
-        $this->syncAdminUserRole((int) $user->id, $role['key']);
+        $this->synchronizer->syncUser($schoolId, (int) $user->id);
         $this->audit->record('rbac.admin_account.created', 'central_user', (string) $user->id, null, [
             'role_key' => $role['key'],
             'status' => $data['status'] ?? 'active',
@@ -183,9 +187,11 @@ class DashboardRbacManager
         $role = $this->dashboardRole($roleKey);
         $this->ensureSchoolMembership($centralUserId);
 
+        $schoolId = $this->tenantContext->schoolId();
+
         $beforeRole = DB::connection('central')
             ->table('school_user')
-            ->where('school_id', $this->tenantContext->schoolId())
+            ->where('school_id', $schoolId)
             ->where('user_id', $centralUserId)
             ->value('role_key');
 
@@ -195,11 +201,11 @@ class DashboardRbacManager
 
         DB::connection('central')
             ->table('school_user')
-            ->where('school_id', $this->tenantContext->schoolId())
+            ->where('school_id', $schoolId)
             ->where('user_id', $centralUserId)
             ->update(['role_key' => $role['key'], 'updated_at' => now()]);
 
-        $this->syncAdminUserRole($centralUserId, $role['key']);
+        $this->synchronizer->syncUser($schoolId, $centralUserId);
         $this->audit->record('rbac.admin_account.role_updated', 'central_user', (string) $centralUserId, ['role_key' => $beforeRole], ['role_key' => $role['key']]);
 
         return $this->adminAccount($centralUserId);
@@ -208,9 +214,11 @@ class DashboardRbacManager
     public function updateAdminStatus(int $centralUserId, string $status): array
     {
         $this->ensureSchoolMembership($centralUserId);
+        $schoolId = $this->tenantContext->schoolId();
+
         $membership = DB::connection('central')
             ->table('school_user')
-            ->where('school_id', $this->tenantContext->schoolId())
+            ->where('school_id', $schoolId)
             ->where('user_id', $centralUserId)
             ->first(['status', 'role_key']);
         $beforeStatus = $membership?->status;
@@ -221,9 +229,20 @@ class DashboardRbacManager
 
         DB::connection('central')
             ->table('school_user')
-            ->where('school_id', $this->tenantContext->schoolId())
+            ->where('school_id', $schoolId)
             ->where('user_id', $centralUserId)
             ->update(['status' => $status, 'updated_at' => now()]);
+
+        $this->synchronizer->syncUser($schoolId, $centralUserId);
+
+        if ($status !== 'active') {
+            PersonalAccessToken::query()
+                ->where('tokenable_type', User::class)
+                ->where('tokenable_id', $centralUserId)
+                ->where('school_id', $schoolId)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
+        }
 
         $this->audit->record('rbac.admin_account.status_updated', 'central_user', (string) $centralUserId, ['status' => $beforeStatus], ['status' => $status]);
 
@@ -333,27 +352,6 @@ class DashboardRbacManager
             'key' => (string) $role->key,
             'label' => $this->localizedJson($role->name),
         ];
-    }
-
-    private function syncAdminUserRole(int $centralUserId, string $roleKey): void
-    {
-        $dashboardRoles = ApplicationAccessMatrix::rolesFor('dashboard');
-        $roleIds = DB::connection('tenant')->table('roles')->whereIn('key', $dashboardRoles)->pluck('id', 'key');
-        $roleId = $roleIds->get($roleKey);
-
-        DB::connection('tenant')->transaction(function () use ($centralUserId, $roleIds, $roleId): void {
-            DB::connection('tenant')->table('user_roles')
-                ->where('central_user_id', $centralUserId)
-                ->whereIn('role_id', $roleIds->values()->all())
-                ->delete();
-
-            DB::connection('tenant')->table('user_roles')->insert([
-                'central_user_id' => $centralUserId,
-                'role_id' => $roleId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        });
     }
 
     private function ensureAnotherActiveSchoolAdmin(int $excludingCentralUserId): void

@@ -32,7 +32,6 @@ class ScheduleDashboardController
         return ApiResponse::data($reader->conflictCheck($request->validated()));
     }
 
-
     public function globalConflictCheck(DashboardScheduleGlobalConflictRequest $request, DashboardScheduleReader $reader): JsonResponse
     {
         Gate::authorize('schedule.view');

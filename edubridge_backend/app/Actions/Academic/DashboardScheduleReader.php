@@ -42,7 +42,6 @@ class DashboardScheduleReader
         ];
     }
 
-
     /** @return array{has_conflict:bool,count:int,conflicts:list<array<string,mixed>>} */
     public function globalConflictCheck(int $academicTermId): array
     {
@@ -69,7 +68,10 @@ class DashboardScheduleReader
             for ($j = $i + 1; $j < $count; $j++) {
                 $right = $slots[$j];
                 if ((int) $right->weekday !== (int) $left->weekday) {
-                    if ((int) $right->weekday > (int) $left->weekday) break;
+                    if ((int) $right->weekday > (int) $left->weekday) {
+                        break;
+                    }
+
                     continue;
                 }
                 if (! ((string) $left->starts_at < (string) $right->ends_at && (string) $left->ends_at > (string) $right->starts_at)) {
@@ -77,9 +79,15 @@ class DashboardScheduleReader
                 }
 
                 $types = [];
-                if ((int) $left->teacher_id === (int) $right->teacher_id) $types[] = 'teacher_overlap';
-                if ((int) $left->section_id === (int) $right->section_id) $types[] = 'section_overlap';
-                if ($types === []) continue;
+                if ((int) $left->teacher_id === (int) $right->teacher_id) {
+                    $types[] = 'teacher_overlap';
+                }
+                if ((int) $left->section_id === (int) $right->section_id) {
+                    $types[] = 'section_overlap';
+                }
+                if ($types === []) {
+                    continue;
+                }
 
                 $conflicts[] = [
                     'types' => $types,

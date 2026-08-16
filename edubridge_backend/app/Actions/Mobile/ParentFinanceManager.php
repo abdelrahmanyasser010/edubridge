@@ -12,6 +12,7 @@ use App\Support\Money;
 use App\Support\ParentStudentAccess;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ParentFinanceManager
@@ -111,7 +112,7 @@ class ParentFinanceManager
         $maxAmountMinor = $maxAmountMinor === null ? $configuredMax : min($maxAmountMinor, $configuredMax);
 
         if ($maxAmountMinor <= 0) {
-            throw new \Symfony\Component\HttpKernel\Exception\ConflictHttpException('Wallet token amount limit must be positive.');
+            throw new ConflictHttpException('Wallet token amount limit must be positive.');
         }
 
         $issued = $this->walletLedger->issuePaymentToken(

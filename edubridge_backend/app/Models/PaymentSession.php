@@ -10,15 +10,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PaymentSession extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_INITIATED = 'initiated';
+
     public const STATUS_REQUIRES_ACTION = 'requires_action';
+
     public const STATUS_PAID = 'paid';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_REFUNDED = 'refunded';
 
     public const PURPOSE_LEGACY_FEE = 'legacy_fee';
+
     public const PURPOSE_INVOICE = 'invoice';
+
     public const PURPOSE_WALLET_TOP_UP = 'wallet_top_up';
 
     protected $connection = 'tenant';

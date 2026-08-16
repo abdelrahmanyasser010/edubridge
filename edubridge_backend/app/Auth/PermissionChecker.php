@@ -28,18 +28,38 @@ final class PermissionChecker
             return false;
         }
 
+        $schoolId = $this->tenantContext->schoolId();
+        $now = now();
+
+        $membership = DB::connection('central')->table('school_user')
+            ->where('school_id', $schoolId)
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where(function ($query) use ($now) {
+                $query->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+            })
+            ->where(function ($query) use ($now) {
+                $query->whereNull('valid_until')->orWhere('valid_until', '>', $now);
+            })
+            ->first(['role_key']);
+
+        if ($membership === null || empty($membership->role_key)) {
+            return false;
+        }
+
         return DB::connection('tenant')
             ->table('user_roles')
             ->join('roles', 'roles.id', '=', 'user_roles.role_id')
             ->join('permission_role', 'permission_role.role_id', '=', 'roles.id')
             ->join('permissions', 'permissions.id', '=', 'permission_role.permission_id')
             ->where('user_roles.central_user_id', $user->id)
+            ->where('roles.key', $membership->role_key)
             ->where('permissions.key', $permission)
-            ->where(function ($query) {
-                $query->whereNull('user_roles.valid_from')->orWhere('user_roles.valid_from', '<=', now());
+            ->where(function ($query) use ($now) {
+                $query->whereNull('user_roles.valid_from')->orWhere('user_roles.valid_from', '<=', $now);
             })
-            ->where(function ($query) {
-                $query->whereNull('user_roles.valid_until')->orWhere('user_roles.valid_until', '>', now());
+            ->where(function ($query) use ($now) {
+                $query->whereNull('user_roles.valid_until')->orWhere('user_roles.valid_until', '>', $now);
             })
             ->exists();
     }

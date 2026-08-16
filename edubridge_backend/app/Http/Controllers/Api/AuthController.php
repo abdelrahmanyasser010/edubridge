@@ -53,7 +53,7 @@ class AuthController extends Controller
             'user' => (new UserResource($request->user()))->resolve($request),
             'school' => (new SchoolResource($school))->resolve($request),
             'role' => $this->rolePayload($accessToken, (int) $request->user()->id),
-            'permissions' => $this->permissionKeys((int) $request->user()->id),
+            'permissions' => $this->permissionKeys($accessToken, (int) $request->user()->id),
             'device_session' => (new DeviceSessionResource($accessToken))->resolve($request),
         ]);
     }
@@ -115,10 +115,17 @@ class AuthController extends Controller
      */
     private function rolePayload(PersonalAccessToken $accessToken, int $userId): array
     {
+        $now = now();
         $roleKey = DB::connection('central')->table('school_user')
             ->where('school_id', $accessToken->school_id)
             ->where('user_id', $userId)
             ->where('status', 'active')
+            ->where(function ($query) use ($now) {
+                $query->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+            })
+            ->where(function ($query) use ($now) {
+                $query->whereNull('valid_until')->orWhere('valid_until', '>', $now);
+            })
             ->value('role_key');
 
         if (! is_string($roleKey)) {
@@ -134,10 +141,27 @@ class AuthController extends Controller
     /**
      * @return list<string>
      */
-    private function permissionKeys(int $userId): array
+    private function permissionKeys(PersonalAccessToken $accessToken, int $userId): array
     {
         try {
             if (! Schema::connection('tenant')->hasTable('user_roles')) {
+                return [];
+            }
+
+            $now = now();
+            $membership = DB::connection('central')->table('school_user')
+                ->where('school_id', $accessToken->school_id)
+                ->where('user_id', $userId)
+                ->where('status', 'active')
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+                })
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('valid_until')->orWhere('valid_until', '>', $now);
+                })
+                ->first(['role_key']);
+
+            if ($membership === null || empty($membership->role_key)) {
                 return [];
             }
 
@@ -147,11 +171,12 @@ class AuthController extends Controller
                 ->join('permission_role', 'permission_role.role_id', '=', 'roles.id')
                 ->join('permissions', 'permissions.id', '=', 'permission_role.permission_id')
                 ->where('user_roles.central_user_id', $userId)
-                ->where(function ($query) {
-                    $query->whereNull('user_roles.valid_from')->orWhere('user_roles.valid_from', '<=', now());
+                ->where('roles.key', $membership->role_key)
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('user_roles.valid_from')->orWhere('user_roles.valid_from', '<=', $now);
                 })
-                ->where(function ($query) {
-                    $query->whereNull('user_roles.valid_until')->orWhere('user_roles.valid_until', '>', now());
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('user_roles.valid_until')->orWhere('user_roles.valid_until', '>', $now);
                 })
                 ->orderBy('permissions.key')
                 ->distinct()

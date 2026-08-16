@@ -1,7 +1,10 @@
 <?php
 
+use App\Actions\Rbac\TenantUserRoleSynchronizer;
 use App\Models\School;
 use App\Models\User;
+use App\Tenancy\Tenant;
+use App\Tenancy\TenantConnectionManager;
 use Database\Seeders\Tenant\TenantRbacSeeder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -87,7 +90,7 @@ Artisan::command('edubridge:demo-school {--migrate : Run central and tenant migr
             ['school_id' => $school->id, 'user_id' => $users[$key]->id],
             ['role_key' => $role, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
         );
-        assignTenantDemoRole((int) $users[$key]->id, $role);
+        app(TenantUserRoleSynchronizer::class)->syncUser((int) $school->id, (int) $users[$key]->id);
     }
 
     $yearId = upsertTenantRow('academic_years', 'name', '2026-2027', ['starts_on' => '2026-08-03', 'ends_on' => '2027-06-30', 'status' => 'active']);
@@ -192,7 +195,7 @@ Artisan::command('edubridge:migrate-tenants', function (): int {
         return 0;
     }
 
-    $manager = app(\App\Tenancy\TenantConnectionManager::class);
+    $manager = app(TenantConnectionManager::class);
 
     foreach ($tenants as $row) {
         if (! empty($row->secret_ref)) {
@@ -214,7 +217,7 @@ Artisan::command('edubridge:migrate-tenants', function (): int {
             }
         }
 
-        $tenant = new \App\Tenancy\Tenant(
+        $tenant = new Tenant(
             schoolId: (int) $row->school_id,
             driver: (string) $row->driver,
             database: (string) $row->database,
@@ -239,22 +242,24 @@ Artisan::command('edubridge:migrate-tenants', function (): int {
                 ]);
 
                 if ($migrationExit !== 0) {
-                    throw new \RuntimeException(
+                    throw new RuntimeException(
                         "Tenant migration failed for school_id={$row->school_id}"
                     );
                 }
 
                 $seedExit = $this->call('db:seed', [
                     '--database' => 'tenant',
-                    '--class' => \Database\Seeders\Tenant\TenantRbacSeeder::class,
+                    '--class' => TenantRbacSeeder::class,
                     '--force' => true,
                 ]);
 
                 if ($seedExit !== 0) {
-                    throw new \RuntimeException(
+                    throw new RuntimeException(
                         "Tenant RBAC seed failed for school_id={$row->school_id}"
                     );
                 }
+
+                app(TenantUserRoleSynchronizer::class)->syncAllForSchool($tenant->schoolId);
             });
 
             DB::connection('central')
@@ -266,7 +271,7 @@ Artisan::command('edubridge:migrate-tenants', function (): int {
                 ]);
 
             $this->info("Tenant {$tenant->schoolId}: OK");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->error(
                 "Tenant {$tenant->schoolId}: FAILED - {$e->getMessage()}"
             );

@@ -4,13 +4,12 @@ namespace App\Actions\Assessment;
 
 use App\Models\GradeAppeal;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
 class DashboardGradeAppealReader
 {
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
     public function index(array $filters): LengthAwarePaginator

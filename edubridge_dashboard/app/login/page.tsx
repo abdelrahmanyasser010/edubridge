@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Building2, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
 import { dashboardErrorMessage } from "@/lib/dashboardApi";
 
@@ -80,21 +80,21 @@ export default function LoginPage() {
                 <Building2 size={27} color="#9ad75d" />
               </div>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 21 }}>EduBridge Pro</div>
+                <div style={{ fontWeight: 900, fontSize: 21 }}>EduBridge</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,.72)" }}>لوحة الإدارة المدرسية</div>
               </div>
             </div>
 
             <h1 style={{ fontSize: 28, lineHeight: 1.45, margin: "0 0 14px", fontWeight: 900 }}>
-              دخول حقيقي متصل ببيانات المدرسة وصلاحيات الخادم
+              إدارة مدرستك من مكان واحد
             </h1>
             <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.9, color: "rgba(255,255,255,.78)" }}>
-              يتم تحديد المدرسة من نطاقها، وتحديد صلاحية المستخدم من حسابه في EduBridge. لا يوجد اختيار يدوي للدور أو دخول تجريبي يتجاوز الخادم.
+              سجّل الدخول للوصول إلى الأدوات والبيانات المتاحة لك حسب صلاحيات حسابك.
             </p>
           </div>
 
           <div style={{ display: "grid", gap: 12 }}>
-            {["Bearer session مرتبطة بالجهاز", "الصلاحيات يتم تحميلها من /auth/me", "انتهاء الجلسة يعيدك تلقائياً لشاشة الدخول"].map((item) => (
+            {["وصول آمن إلى حسابك", "صلاحيات مخصصة حسب دورك", "بيانات مدرستك في مكان واحد"].map((item) => (
               <div key={item} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12.5, color: "rgba(255,255,255,.86)" }}>
                 <CheckCircle2 size={16} color="#9ad75d" /> {item}
               </div>
@@ -103,12 +103,9 @@ export default function LoginPage() {
         </section>
 
         <section style={{ padding: "48px 42px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "#9ad75d", fontSize: 12, fontWeight: 800, marginBottom: 12 }}>
-            <ShieldCheck size={16} /> بوابة الدخول الآمنة
-          </div>
           <h2 style={{ color: "white", margin: "0 0 8px", fontSize: 25, fontWeight: 900 }}>تسجيل الدخول</h2>
           <p style={{ color: "#8EABBE", fontSize: 13, lineHeight: 1.7, margin: "0 0 26px" }}>
-            أدخل البريد وكلمة المرور فقط. معرف تثبيت المتصفح يتم إنشاؤه وإرساله تلقائياً في الخلفية.
+            أدخل بيانات حسابك للمتابعة إلى لوحة التحكم.
           </p>
 
           {currentSchool?.name && (
@@ -168,8 +165,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: 22, color: "#6F8C9E", fontSize: 11.5, lineHeight: 1.8 }}>
-            يتم تحديد المدرسة من عنوان النطاق الحالي، ولا يتم إرسال <code>school_code</code> أو <code>app_type</code> داخل طلب تسجيل الدخول.
+          <div style={{ marginTop: 22, color: "#6F8C9E", fontSize: 11.5, lineHeight: 1.8, textAlign: "center" }}>
+            هل تواجه مشكلة في تسجيل الدخول؟ تواصل مع مسؤول النظام في مدرستك.
           </div>
         </section>
       </div>
