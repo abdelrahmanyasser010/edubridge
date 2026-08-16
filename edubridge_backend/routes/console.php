@@ -14,6 +14,11 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('edubridge:demo-school {--migrate : Run central and tenant migrations before seeding} {--school-code=alpha} {--tenant-database=}', function (): int {
+    if (app()->environment('production')) {
+        $this->error('Refusing to run demo-school in production.');
+
+        return 1;
+    }
     $schoolCode = (string) $this->option('school-code');
     $tenantDatabase = (string) ($this->option('tenant-database') ?: config('database.connections.tenant.database'));
 
