@@ -1,0 +1,1962 @@
+{
+  "info": {
+    "_postman_id": "7f8b9e01-2e1d-4a8b-829d-09123c7b9e02",
+    "name": "EduBridge Dashboard",
+    "description": "Postman Collection for EduBridge Dashboard implemented endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.test\",\n  \"password\": \"secret-password\",\n  \"device_id\": \"postman-client-uuid\",\n  \"device_name\": \"Postman Client\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (pm.response.code === 200 && jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"token\", jsonData.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Auth Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Overview",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/dashboard/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "dashboard", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/search?q=Sa&type=all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Sa"
+                },
+                {
+                  "key": "type",
+                  "value": "all"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Academic",
+      "item": [
+        {
+          "name": "Get Academic Structure",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/academic/structure",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "academic", "structure"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Finance Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "summary"]
+            }
+          }
+        },
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/invoices?per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "invoices"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": \"{{student_id}}\",\n  \"issue_date\": \"2026-07-01\",\n  \"due_date\": \"2026-08-01\",\n  \"currency\": \"SAR\",\n  \"discount\": 0,\n  \"tax\": 0,\n  \"lines\": [\n    { \"title\": \"Tuition term 1\", \"amount\": 3000 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/invoices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "invoices"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (pm.response.code === 201 && jsonData.data && jsonData.data.id) {",
+                  "    pm.environment.set(\"invoice_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show Invoice",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/invoices/{{invoice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "invoices", "{{invoice_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_id\": \"{{invoice_id}}\",\n  \"amount\": 1000,\n  \"method\": \"cash\",\n  \"paid_at\": \"2026-07-22T10:30:00Z\",\n  \"reference\": \"manual-receipt-1001\",\n  \"notes\": \"Paid at school office\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Create Payment Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 250,\n  \"reason\": \"Parent refund request\",\n  \"reference\": \"optional-external-reference\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/payments/{{payment_id}}/refunds",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "payments", "{{payment_id}}", "refunds"]
+            }
+          }
+        },
+        {
+          "name": "List Finance Refunds",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/refunds?payment_id={{payment_id}}&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "refunds"],
+              "query": [
+                {
+                  "key": "payment_id",
+                  "value": "{{payment_id}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Discounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/discounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "discounts"]
+            }
+          }
+        },
+        {
+          "name": "Create Discount",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": \"{{student_id}}\",\n  \"title\": \"Sibling discount\",\n  \"amount\": 250,\n  \"type\": \"fixed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/discounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "discounts"]
+            }
+          }
+        },
+        {
+          "name": "Collections Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/reports/collections",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "reports", "collections"]
+            }
+          }
+        },
+        {
+          "name": "Outstanding Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/reports/outstanding",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "reports", "outstanding"]
+            }
+          }
+        },
+        {
+          "name": "Student Statement",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/finance/reports/student-statement/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "finance", "reports", "student-statement", "{{student_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transport",
+      "item": [
+        {
+          "name": "Transport Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "summary"]
+            }
+          }
+        },
+        {
+          "name": "List Transport Routes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes?per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (pm.response.code === 200 && jsonData.data && jsonData.data[0] && jsonData.data[0].id) {",
+                  "    pm.environment.set(\"transport_route_id\", jsonData.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show Transport Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Transport Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dashboard Route\",\n  \"code\": \"DASH-ROUTE-1\",\n  \"capacity\": 24,\n  \"driver_name\": \"Driver Name\",\n  \"plate_number\": \"ABC-123\",\n  \"driver_phone\": \"+201001112223\",\n  \"supervisor_name\": \"Supervisor Name\",\n  \"estimated_arrival_time\": \"07:45\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes"]
+            }
+          }
+        },
+        {
+          "name": "Update Transport Route",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driver_name\": \"Updated Driver\",\n  \"estimated_arrival_time\": \"08:10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Archive Transport Route",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Assign Student To Transport Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"valid_from\": \"2026-08-03\",\n  \"valid_until\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/assignments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "Update Transport Route Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valid_until\": \"2026-12-20\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/assignments/{{transport_assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "assignments", "{{transport_assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Archive Transport Route Assignment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/assignments/{{transport_assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "assignments", "{{transport_assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Route Passengers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/passengers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "passengers"]
+            }
+          }
+        },
+        {
+          "name": "Route Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "events"]
+            }
+          }
+        },
+        {
+          "name": "Send Delay Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Bus is delayed by 15 minutes.\",\n  \"delay_minutes\": 15,\n  \"channels\": [\"database\", \"push\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/delay-alert",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "delay-alert"]
+            }
+          }
+        },
+        {
+          "name": "Contact Driver Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outcome\": \"called\",\n  \"notes\": \"Driver confirmed traffic delay.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/transport/routes/{{transport_route_id}}/contact-driver-log",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "transport", "routes", "{{transport_route_id}}", "contact-driver-log"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "School Settings",
+      "item": [
+        {
+          "name": "Get School Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/school/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "school", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Update School Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school\": {\n    \"name\": \"Alpha International School\",\n    \"timezone\": \"Africa/Cairo\",\n    \"locale\": \"ar\",\n    \"currency\": \"SAR\"\n  },\n  \"attendance\": {\n    \"late_after_minutes\": 10,\n    \"absence_warning_threshold\": 5\n  },\n  \"notifications\": {\n    \"push_enabled\": true,\n    \"sms_enabled\": true,\n    \"email_enabled\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/school/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "school", "settings"]
+            }
+          }
+        },
+        {
+          "name": "List Integrations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/school/integrations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "school", "integrations"]
+            }
+          }
+        },
+        {
+          "name": "Update Integration",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"unifonic\",\n  \"status\": \"connected\",\n  \"api_key\": \"replace-with-real-secret-in-secure-runtime-only\",\n  \"config\": {\n    \"endpoint_url\": \"https://sms.example.test/send\",\n    \"sender_id\": \"EduBridge\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/school/integrations/sms_gateway",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "school", "integrations", "sms_gateway"]
+            }
+          }
+        },
+        {
+          "name": "Test Integration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/school/integrations/sms_gateway/test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "school", "integrations", "sms_gateway", "test"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/audit-logs?action=&entity_type=&actor_id=&from=&to=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "audit-logs"],
+              "query": [
+                {
+                  "key": "action",
+                  "value": ""
+                },
+                {
+                  "key": "entity_type",
+                  "value": ""
+                },
+                {
+                  "key": "actor_id",
+                  "value": ""
+                },
+                {
+                  "key": "from",
+                  "value": ""
+                },
+                {
+                  "key": "to",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Audit Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/audit-logs/{{audit_log_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "audit-logs", "{{audit_log_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/rbac/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "rbac", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Create Custom Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"custom_operations\",\n  \"name\": \"Custom Operations\",\n  \"permissions\": [\"people.view\", \"audit.view\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/rbac/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "rbac", "roles"]
+            }
+          }
+        },
+        {
+          "name": "List Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/rbac/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "rbac", "permissions"]
+            }
+          }
+        },
+        {
+          "name": "Get Matrix",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/rbac/matrix",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "rbac", "matrix"]
+            }
+          }
+        },
+        {
+          "name": "Update Matrix",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\n    {\n      \"key\": \"custom_operations\",\n      \"permissions\": [\"people.view\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/rbac/matrix",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "rbac", "matrix"]
+            }
+          }
+        },
+        {
+          "name": "List Admin Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/admin-accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "admin-accounts"]
+            }
+          }
+        },
+        {
+          "name": "Create Admin Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Finance Admin\",\n  \"email\": \"finance-admin@example.test\",\n  \"password\": \"secret-password\",\n  \"role_key\": \"finance_officer\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/admin-accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "admin-accounts"]
+            }
+          }
+        },
+        {
+          "name": "Update Admin Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_key\": \"student_affairs\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/admin-accounts/{{admin_account_id}}/role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "admin-accounts", "{{admin_account_id}}", "role"]
+            }
+          }
+        },
+        {
+          "name": "Update Admin Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"suspended\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/admin-accounts/{{admin_account_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "admin-accounts", "{{admin_account_id}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Broadcasts",
+      "item": [
+        {
+          "name": "List Broadcasts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts?status=&type=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "type",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Important announcement\",\n  \"body\": \"School will finish early tomorrow.\",\n  \"type\": \"announcement\",\n  \"target\": {\n    \"type\": \"roles\",\n    \"ids\": [\"teacher\"]\n  },\n  \"channels\": [\"database\", \"push\"],\n  \"scheduled_at\": null,\n  \"priority\": \"normal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts"]
+            }
+          }
+        },
+        {
+          "name": "Show Broadcast",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts/{{broadcast_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts", "{{broadcast_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Send Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts/{{broadcast_id}}/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts", "{{broadcast_id}}", "send"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts/{{broadcast_id}}/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts", "{{broadcast_id}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Broadcast Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/broadcasts/{{broadcast_id}}/deliveries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "broadcasts", "{{broadcast_id}}", "deliveries"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Behavior Notes",
+      "item": [
+        {
+          "name": "List Dashboard Behavior Notes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/behavior-notes?status=pending_review&section_id=&student_id=&severity=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "behavior-notes"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending_review"
+                },
+                {
+                  "key": "section_id",
+                  "value": ""
+                },
+                {
+                  "key": "student_id",
+                  "value": ""
+                },
+                {
+                  "key": "severity",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave Permits",
+      "item": [
+        {
+          "name": "List Dashboard Leave Permits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/leave-permits?status=pending&section_id=&student_id=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "leave-permits"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "section_id",
+                  "value": ""
+                },
+                {
+                  "key": "student_id",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schedules",
+      "item": [
+        {
+          "name": "List Dashboard Schedules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/schedules?academic_term_id=&section_id=&teacher_id=&from=&to=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "schedules"],
+              "query": [
+                {
+                  "key": "academic_term_id",
+                  "value": ""
+                },
+                {
+                  "key": "section_id",
+                  "value": ""
+                },
+                {
+                  "key": "teacher_id",
+                  "value": ""
+                },
+                {
+                  "key": "from",
+                  "value": ""
+                },
+                {
+                  "key": "to",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Schedule Conflict",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"academic_term_id\": 1,\n  \"allocation_id\": 1,\n  \"weekday\": 1,\n  \"starts_at\": \"09:00\",\n  \"ends_at\": \"10:00\",\n  \"ignore_slot_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/schedules/conflicts/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "schedules", "conflicts", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calendar Events",
+      "item": [
+        {
+          "name": "List Calendar Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/calendar/events?type=&status=active&from=&to=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "calendar", "events"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "from",
+                  "value": ""
+                },
+                {
+                  "key": "to",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Calendar Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Parent meeting\",\n  \"description\": \"Term opening meeting.\",\n  \"type\": \"meeting\",\n  \"starts_at\": \"2026-09-10T08:00:00Z\",\n  \"ends_at\": \"2026-09-10T09:00:00Z\",\n  \"all_day\": false,\n  \"audience_type\": \"all\",\n  \"location\": \"Main hall\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/calendar/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "calendar", "events"]
+            }
+          }
+        },
+        {
+          "name": "Show Calendar Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/calendar/events/{{calendar_event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "calendar", "events", "{{calendar_event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Calendar Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated parent meeting\",\n  \"location\": \"Room 2\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/calendar/events/{{calendar_event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "calendar", "events", "{{calendar_event_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Calendar Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/calendar/events/{{calendar_event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "calendar", "events", "{{calendar_event_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessments",
+      "item": [
+        {
+          "name": "List Dashboard Assessments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/assessments?status=pending_approval&academic_term_id=&teacher_id=&section_id=&subject_id=&type=&from=&to=&per_page=25",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "assessments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending_approval"
+                },
+                {
+                  "key": "academic_term_id",
+                  "value": ""
+                },
+                {
+                  "key": "teacher_id",
+                  "value": ""
+                },
+                {
+                  "key": "section_id",
+                  "value": ""
+                },
+                {
+                  "key": "subject_id",
+                  "value": ""
+                },
+                {
+                  "key": "type",
+                  "value": ""
+                },
+                {
+                  "key": "from",
+                  "value": ""
+                },
+                {
+                  "key": "to",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Dashboard Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/assessments/{{assessment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "assessments", "{{assessment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Dashboard Assessment Grades",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entries\": [\n    {\n      \"student_id\": {{student_id}},\n      \"score\": 87.5,\n      \"note\": \"Optional note\",\n      \"revision\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/assessments/{{assessment_id}}/grades",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "assessments", "{{assessment_id}}", "grades"]
+            }
+          }
+        },
+        {
+          "name": "Queue Assessment Grade Sheet Export",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/assessments/{{assessment_id}}/exports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "assessments", "{{assessment_id}}", "exports"]
+            }
+          }
+        },
+        {
+          "name": "Show Dashboard Report Export",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/reports/exports/{{export_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "reports", "exports", "{{export_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Canvas Configs",
+      "item": [
+        {
+          "name": "Get Canvas Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/canvas-configs/{{canvas_config_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "canvas-configs", "{{canvas_config_key}}"]
+            }
+          }
+        },
+        {
+          "name": "Save Canvas Config",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dashboard Home\",\n  \"payload\": {\n    \"nodes\": [\n      {\"id\": \"summary\", \"type\": \"kpi\"}\n    ],\n    \"edges\": []\n  },\n  \"expected_version\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/dashboard/canvas-configs/{{canvas_config_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "dashboard", "canvas-configs", "{{canvas_config_key}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

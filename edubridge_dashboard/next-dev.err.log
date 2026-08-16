@@ -1,0 +1,2 @@
+⚠ Slow filesystem detected. The benchmark took 392ms. If D:\android tog\edubridge_dashboard\.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development

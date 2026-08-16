@@ -1,0 +1,6829 @@
+openapi: 3.1.0
+info:
+  title: EduBridge Backend API
+  version: 0.1.0
+  summary: Multi-school EduBridge API contract skeleton
+  description: 'Source of truth for API paths, shared envelopes, authentication, errors, and pagination. Domain endpoints
+    are added by their own tasks.
+
+    '
+servers:
+- url: /api/v1
+  description: Versioned API base path
+tags:
+- name: Auth
+  description: First-party Sanctum authentication and device sessions
+- name: Academic
+  description: Academic years, terms, grade levels, sections, and subjects
+- name: People
+  description: Teacher, guardian, and student profiles
+- name: Attendance
+  description: Attendance roster, drafts, and submissions
+- name: Assignments
+  description: Teacher assignment drafting and publishing
+- name: Notifications
+  description: Notification inbox, read receipts, and preferences
+- name: Behavior
+  description: Behavior note workflow and parent acknowledgement
+- name: Messaging
+  description: Authorized conversation threads and messages
+- name: Operations
+  description: Student affairs operational workflows
+- name: Finance
+  description: Dashboard billing, invoices, payments, discounts, and reports
+- name: Files
+  description: Private file download after tenant authorization
+- name: Foundation
+  description: Shared API conventions and health-style testing routes
+security:
+- bearerAuth: []
+paths:
+  /dashboard/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: dashboardAuthLogin
+      summary: Issue a school-scoped Sanctum token for Dashboard App
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /teacher/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: teacherAuthLogin
+      summary: Issue a school-scoped Sanctum token for Teacher App
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /parent/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: parentAuthLogin
+      summary: Issue a school-scoped Sanctum token for Parent App
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /student/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: studentAuthLogin
+      summary: Issue a school-scoped Sanctum token for Student App
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /transport/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: transportAuthLogin
+      summary: Issue a school-scoped Sanctum token for Transport App
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/LoginResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /school/lookup:
+    post:
+      tags:
+      - Auth
+      operationId: schoolLookup
+      summary: Resolve school metadata and api_base_url by invitation token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - token
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: School resolved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: object
+                      required:
+                      - school_name
+                      - school_code
+                      - api_base_url
+                      properties:
+                        school_name:
+                          type: string
+                        school_code:
+                          type: string
+                        api_base_url:
+                          type: string
+        '422':
+          description: Invalid or expired token
+  /auth/device/push-token:
+    put:
+      tags:
+      - Auth
+      operationId: updatePushToken
+      summary: Store or update device FCM token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - token
+              - platform
+              properties:
+                token:
+                  type: string
+                platform:
+                  type: string
+                  enum:
+                  - android
+                  - ios
+                  - web
+      responses:
+        '204':
+          description: Push token stored successfully
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      operationId: authMe
+      summary: Return the authenticated user, school, and current device session
+      responses:
+        '200':
+          description: Current authenticated identity
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/AuthContext'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /auth/device-sessions:
+    get:
+      tags:
+      - Auth
+      operationId: authDeviceSessions
+      summary: List active device sessions for the authenticated user
+      responses:
+        '200':
+          description: Active device sessions
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/CollectionEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/DeviceSession'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /auth/logout:
+    post:
+      tags:
+      - Auth
+      operationId: authLogout
+      summary: Revoke the current device token
+      responses:
+        '204':
+          description: Current token revoked
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+  /auth/device-sessions/{deviceSession}/revoke:
+    post:
+      tags:
+      - Auth
+      operationId: authRevokeDeviceSessionPost
+      summary: Alias for revoking another active device session
+      parameters:
+      - $ref: '#/components/parameters/DeviceSessionId'
+      responses:
+        '204':
+          description: Device session revoked
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - Auth
+      operationId: authRevokeDeviceSession
+      summary: Revoke another active device session owned by the authenticated user
+      parameters:
+      - $ref: '#/components/parameters/DeviceSessionId'
+      responses:
+        '204':
+          description: Device session revoked
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /files/{publicId}/download:
+    get:
+      tags:
+      - Files
+      operationId: filesDownload
+      summary: Stream a private file using a short-lived signed URL
+      description: Requires a valid Sanctum token, tenant context, URL signature, file ownership, and clean scan status.
+      parameters:
+      - $ref: '#/components/parameters/FilePublicId'
+      - $ref: '#/components/parameters/Signature'
+      - $ref: '#/components/parameters/Expires'
+      responses:
+        '200':
+          description: File stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /academic/structure:
+    get:
+      tags:
+      - Academic
+      operationId: academicStructure
+      summary: Return tenant academic years, terms, grade levels, sections, and subjects
+      responses:
+        '200':
+          description: Academic structure aggregate
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  required:
+                  - data
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/AcademicStructure'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /academic-years:
+    post:
+      tags:
+      - Academic
+      operationId: academicYearsCreate
+      summary: Create an academic year
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicYearInput'
+      responses:
+        '201':
+          description: Academic year created
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SuccessEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/AcademicYear'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /academic-years/{academicYear}:
+    patch:
+      tags:
+      - Academic
+      operationId: academicYearsUpdate
+      summary: Update an academic year
+      parameters:
+      - $ref: '#/components/parameters/AcademicYearId'
+      responses:
+        '200':
+          description: Academic year updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - Academic
+      operationId: academicYearsClose
+      summary: Close an academic year instead of hard-deleting it
+      parameters:
+      - $ref: '#/components/parameters/AcademicYearId'
+      responses:
+        '200':
+          description: Academic year closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /academic-years/{academicYear}/terms:
+    post:
+      tags:
+      - Academic
+      operationId: academicTermsCreate
+      summary: Create a term inside an academic year
+      parameters:
+      - $ref: '#/components/parameters/AcademicYearId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTermInput'
+      responses:
+        '201':
+          description: Academic term created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /academic-terms/{academicTerm}/activate:
+    post:
+      tags:
+      - Academic
+      operationId: academicTermsActivate
+      summary: Activate a term; only one active term is allowed per year
+      parameters:
+      - $ref: '#/components/parameters/AcademicTermId'
+      responses:
+        '200':
+          description: Academic term activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /academic-terms/{academicTerm}:
+    patch:
+      tags:
+      - Academic
+      operationId: academicTermsUpdate
+      summary: Update an academic term
+      parameters:
+      - $ref: '#/components/parameters/AcademicTermId'
+      responses:
+        '200':
+          description: Academic term updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /grade-levels:
+    post:
+      tags:
+      - Academic
+      operationId: gradeLevelsCreate
+      summary: Create a grade level
+      responses:
+        '201':
+          description: Grade level created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /grade-levels/{gradeLevel}:
+    patch:
+      tags:
+      - Academic
+      operationId: gradeLevelsUpdate
+      summary: Update a grade level
+      parameters:
+      - $ref: '#/components/parameters/GradeLevelId'
+      responses:
+        '200':
+          description: Grade level updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Academic
+      operationId: gradeLevelsArchive
+      summary: Archive a grade level
+      parameters:
+      - $ref: '#/components/parameters/GradeLevelId'
+      responses:
+        '200':
+          description: Grade level archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /subjects:
+    post:
+      tags:
+      - Academic
+      operationId: subjectsCreate
+      summary: Create a subject and optionally assign it to grade levels
+      responses:
+        '201':
+          description: Subject created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /subjects/{subject}:
+    patch:
+      tags:
+      - Academic
+      operationId: subjectsUpdate
+      summary: Update a subject
+      parameters:
+      - $ref: '#/components/parameters/SubjectId'
+      responses:
+        '200':
+          description: Subject updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Academic
+      operationId: subjectsArchive
+      summary: Archive a subject
+      parameters:
+      - $ref: '#/components/parameters/SubjectId'
+      responses:
+        '200':
+          description: Subject archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /sections:
+    post:
+      tags:
+      - Academic
+      operationId: sectionsCreate
+      summary: Create a section under a grade level
+      responses:
+        '201':
+          description: Section created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /sections/{section}:
+    patch:
+      tags:
+      - Academic
+      operationId: sectionsUpdate
+      summary: Update a section
+      parameters:
+      - $ref: '#/components/parameters/SectionId'
+      responses:
+        '200':
+          description: Section updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Academic
+      operationId: sectionsArchive
+      summary: Archive a section
+      parameters:
+      - $ref: '#/components/parameters/SectionId'
+      responses:
+        '200':
+          description: Section archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /teachers:
+    get:
+      tags:
+      - People
+      operationId: teachersList
+      summary: List teacher profiles
+      responses:
+        '200':
+          description: Teacher profiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - People
+      operationId: teachersCreate
+      summary: Create a teacher profile
+      responses:
+        '201':
+          description: Teacher profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /teachers/{teacher}:
+    get:
+      tags:
+      - People
+      operationId: teachersShow
+      summary: Show a teacher profile with dashboard-friendly assignment summaries
+      parameters:
+      - $ref: '#/components/parameters/TeacherId'
+      responses:
+        '200':
+          description: Teacher profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - People
+      operationId: teachersUpdate
+      summary: Update a teacher profile
+      parameters:
+      - $ref: '#/components/parameters/TeacherId'
+      responses:
+        '200':
+          description: Teacher profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - People
+      operationId: teachersArchive
+      summary: Archive a teacher profile instead of hard-deleting it
+      parameters:
+      - $ref: '#/components/parameters/TeacherId'
+      responses:
+        '200':
+          description: Teacher profile archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /parents:
+    get:
+      tags:
+      - People
+      operationId: parentsList
+      summary: List guardian profiles
+      responses:
+        '200':
+          description: Guardian profiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - People
+      operationId: parentsCreate
+      summary: Create a guardian profile
+      responses:
+        '201':
+          description: Guardian profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /parents/{parent}:
+    get:
+      tags:
+      - People
+      operationId: parentsShow
+      summary: Show a guardian profile with children summary
+      parameters:
+      - $ref: '#/components/parameters/ParentId'
+      responses:
+        '200':
+          description: Guardian profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - People
+      operationId: parentsUpdate
+      summary: Update a guardian profile
+      parameters:
+      - $ref: '#/components/parameters/ParentId'
+      responses:
+        '200':
+          description: Guardian profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - People
+      operationId: parentsArchive
+      summary: Archive a guardian profile instead of hard-deleting it
+      parameters:
+      - $ref: '#/components/parameters/ParentId'
+      responses:
+        '200':
+          description: Guardian profile archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /students:
+    get:
+      tags:
+      - People
+      operationId: studentsList
+      summary: List student profiles
+      responses:
+        '200':
+          description: Student profiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - People
+      operationId: studentsCreate
+      summary: Create a student profile
+      responses:
+        '201':
+          description: Student profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /students/{student}:
+    get:
+      tags:
+      - People
+      operationId: studentsShow
+      summary: Show a student profile with guardian summary
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - People
+      operationId: studentsUpdate
+      summary: Update a student profile
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - People
+      operationId: studentsArchive
+      summary: Archive a student profile instead of hard-deleting it
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student profile archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /students/{student}/parents:
+    get:
+      tags:
+      - People
+      operationId: studentParentsList
+      summary: List guardian links for a student
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student guardian links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - People
+      operationId: studentParentsCreate
+      summary: Attach a guardian to a student
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '201':
+          description: Student guardian link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /students/{student}/parents/{studentParent}:
+    patch:
+      tags:
+      - People
+      operationId: studentParentsNestedUpdate
+      summary: Update a student guardian relationship using dashboard nested route
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      - $ref: '#/components/parameters/StudentParentId'
+      responses:
+        '200':
+          description: Student guardian link updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - People
+      operationId: studentParentsNestedArchive
+      summary: Archive a student guardian relationship using dashboard nested route
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      - $ref: '#/components/parameters/StudentParentId'
+      responses:
+        '200':
+          description: Student guardian link archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /student-parents/{studentParent}:
+    patch:
+      tags:
+      - People
+      operationId: studentParentsUpdate
+      summary: Update a student guardian relationship
+      parameters:
+      - $ref: '#/components/parameters/StudentParentId'
+      responses:
+        '200':
+          description: Student guardian link updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - People
+      operationId: studentParentsArchive
+      summary: Archive a student guardian relationship
+      parameters:
+      - $ref: '#/components/parameters/StudentParentId'
+      responses:
+        '200':
+          description: Student guardian link archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /academic/allocations:
+    get:
+      tags:
+      - Academic
+      operationId: academicAllocationsList
+      summary: List teacher-section-subject allocations
+      responses:
+        '200':
+          description: Teacher-section-subject allocations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Academic
+      operationId: academicAllocationsCreate
+      summary: Allocate a teacher to a subject in a section for a term
+      responses:
+        '201':
+          description: Allocation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /academic/allocations/{allocation}:
+    patch:
+      tags:
+      - Academic
+      operationId: academicAllocationsUpdate
+      summary: Update an allocation quota or homeroom flag
+      parameters:
+      - $ref: '#/components/parameters/AllocationId'
+      responses:
+        '200':
+          description: Allocation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Academic
+      operationId: academicAllocationsArchive
+      summary: Archive an allocation
+      parameters:
+      - $ref: '#/components/parameters/AllocationId'
+      responses:
+        '200':
+          description: Allocation archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /schedule-slots:
+    get:
+      tags:
+      - Academic
+      operationId: scheduleSlotsList
+      summary: List schedule slots
+      responses:
+        '200':
+          description: Schedule slots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Academic
+      operationId: scheduleSlotsCreate
+      summary: Create a recurring schedule slot
+      responses:
+        '201':
+          description: Schedule slot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /schedule-slots/{slot}:
+    patch:
+      tags:
+      - Academic
+      operationId: scheduleSlotsUpdate
+      summary: Update a schedule slot
+      parameters:
+      - $ref: '#/components/parameters/ScheduleSlotId'
+      responses:
+        '200':
+          description: Schedule slot updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Academic
+      operationId: scheduleSlotsArchive
+      summary: Archive a schedule slot
+      parameters:
+      - $ref: '#/components/parameters/ScheduleSlotId'
+      responses:
+        '200':
+          description: Schedule slot archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /academic-terms/{academicTerm}/generate-sessions:
+    post:
+      tags:
+      - Academic
+      operationId: teachingSessionsGenerate
+      summary: Generate teaching session occurrences idempotently for a term
+      parameters:
+      - $ref: '#/components/parameters/AcademicTermId'
+      responses:
+        '200':
+          description: Generation summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /admin/search:
+    get:
+      tags:
+      - People
+      operationId: adminSearch
+      summary: Minimal tenant-scoped admin search across teachers, parents, and students
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 80
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - all
+          - teachers
+          - parents
+          - students
+          default: all
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /admin/dashboard/summary:
+    get:
+      tags:
+      - People
+      operationId: adminDashboardSummary
+      summary: Minimal dashboard counts for active tenant records
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/summary:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceSummary
+      summary: Dashboard finance KPIs for the active tenant
+      responses:
+        '200':
+          description: Finance summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /dashboard/finance/invoices:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceInvoicesList
+      summary: List tenant-scoped finance invoices
+      parameters:
+      - name: student_id
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - partial
+          - paid
+          - overdue
+          - cancelled
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Invoice list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Finance
+      operationId: dashboardFinanceInvoicesCreate
+      summary: Create a finance invoice with line items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - student_id
+              - issue_date
+              - due_date
+              - lines
+              properties:
+                student_id:
+                  $ref: '#/components/schemas/StringId'
+                issue_date:
+                  type: string
+                  format: date
+                due_date:
+                  type: string
+                  format: date
+                currency:
+                  type: string
+                  default: SAR
+                discount:
+                  type: number
+                  minimum: 0
+                tax:
+                  type: number
+                  minimum: 0
+                lines:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                    - title
+                    - amount
+                    properties:
+                      title:
+                        type: string
+                      amount:
+                        type: number
+                        minimum: 0.01
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/finance/invoices/{invoice}:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceInvoicesShow
+      summary: Show one finance invoice
+      parameters:
+      - name: invoice
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      tags:
+      - Finance
+      operationId: dashboardFinanceInvoicesUpdate
+      summary: Update an unpaid or partially paid finance invoice
+      parameters:
+      - name: invoice
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Invoice updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+      - Finance
+      operationId: dashboardFinanceInvoicesCancel
+      summary: Cancel an invoice instead of hard deleting financial data
+      parameters:
+      - name: invoice
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Invoice cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/payments:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinancePaymentsList
+      summary: List recorded finance payments
+      parameters:
+      - name: invoice_id
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: student_id
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Payment list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Finance
+      operationId: dashboardFinancePaymentsCreate
+      summary: Record a manual dashboard payment against an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - invoice_id
+              - amount
+              - method
+              - paid_at
+              properties:
+                invoice_id:
+                  $ref: '#/components/schemas/StringId'
+                amount:
+                  type: number
+                  minimum: 0.01
+                method:
+                  type: string
+                  enum:
+                  - cash
+                  - bank_transfer
+                  - card
+                  - online
+                  - cheque
+                paid_at:
+                  type: string
+                  format: date-time
+                reference:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/finance/payments/{payment}:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinancePaymentsShow
+      summary: Show one recorded finance payment
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Payment detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/payments/{payment}/refunds:
+    post:
+      tags:
+      - Finance
+      operationId: dashboardFinancePaymentRefundsCreate
+      summary: Create a dashboard finance payment refund
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - amount
+              - reason
+              properties:
+                amount:
+                  type: number
+                  minimum: 0.01
+                reason:
+                  type: string
+                reference:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Finance refund created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/finance/refunds:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceRefundsList
+      summary: List dashboard finance refunds
+      parameters:
+      - name: payment_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: invoice_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated finance refunds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/discounts:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceDiscountsList
+      summary: List active or archived discounts
+      parameters:
+      - name: student_id
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - active
+          - archived
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Discount list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Finance
+      operationId: dashboardFinanceDiscountsCreate
+      summary: Create a student-specific or global discount
+      responses:
+        '201':
+          description: Discount created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/finance/discounts/{discount}:
+    patch:
+      tags:
+      - Finance
+      operationId: dashboardFinanceDiscountsUpdate
+      summary: Update a discount
+      parameters:
+      - name: discount
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Discount updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      tags:
+      - Finance
+      operationId: dashboardFinanceDiscountsArchive
+      summary: Archive a discount instead of hard deleting it
+      parameters:
+      - name: discount
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Discount archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/reports/collections:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceReportsCollections
+      summary: Collection totals grouped by date and method
+      responses:
+        '200':
+          description: Collection report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/reports/outstanding:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceReportsOutstanding
+      summary: Outstanding invoice balances
+      responses:
+        '200':
+          description: Outstanding report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/finance/reports/student-statement/{student}:
+    get:
+      tags:
+      - Finance
+      operationId: dashboardFinanceReportsStudentStatement
+      summary: One student's billing statement
+      parameters:
+      - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student statement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/transport/summary:
+    get:
+      tags:
+      - Transport
+      operationId: dashboardTransportSummary
+      summary: Dashboard transport KPIs for the active tenant
+      responses:
+        '200':
+          description: Transport summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /dashboard/transport/routes:
+    get:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutesList
+      summary: List dashboard transport route cards
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Transport routes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutesCreate
+      summary: Create a dashboard transport route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - code
+              - capacity
+              properties:
+                name:
+                  type: string
+                code:
+                  type: string
+                capacity:
+                  type: integer
+                  minimum: 1
+                driver_name:
+                  type: string
+                  nullable: true
+                plate_number:
+                  type: string
+                  nullable: true
+                driver_phone:
+                  type: string
+                  nullable: true
+                supervisor_name:
+                  type: string
+                  nullable: true
+                estimated_arrival_time:
+                  type: string
+                  pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+      responses:
+        '201':
+          description: Transport route created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/transport/routes/{route}:
+    get:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutesShow
+      summary: Show one dashboard transport route card
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Transport route
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutesUpdate
+      summary: Update a dashboard transport route
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Transport route updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutesArchive
+      summary: Archive a dashboard transport route
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Transport route archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/transport/routes/{route}/passengers:
+    get:
+      tags:
+      - Transport
+      operationId: dashboardTransportRoutePassengers
+      summary: List active passengers assigned to a route
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Passenger list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/transport/routes/{route}/assignments:
+    post:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteAssignmentsCreate
+      summary: Assign a student to a dashboard transport route
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Route assignment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/transport/routes/{route}/assignments/{assignment}:
+    patch:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteAssignmentsUpdate
+      summary: Update a dashboard transport route assignment
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Route assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteAssignmentsArchive
+      summary: Archive a dashboard transport route assignment
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Route assignment archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/transport/routes/{route}/events:
+    get:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteEvents
+      summary: Show route tracking, alert, and contact-driver events
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Route event timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/transport/routes/{route}/delay-alert:
+    post:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteDelayAlert
+      summary: Send a delay alert to active route parents
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - message
+              - delay_minutes
+              properties:
+                bus_trip_id:
+                  $ref: '#/components/schemas/StringId'
+                message:
+                  type: string
+                  maxLength: 255
+                delay_minutes:
+                  type: integer
+                  minimum: 1
+                  maximum: 240
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - database
+                    - push
+                    - sms
+      responses:
+        '201':
+          description: Delay alert created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/transport/routes/{route}/contact-driver-log:
+    post:
+      tags:
+      - Transport
+      operationId: dashboardTransportRouteContactDriverLog
+      summary: Record an admin contact attempt with the route driver
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - outcome
+              properties:
+                outcome:
+                  type: string
+                  enum:
+                  - called
+                  - no_answer
+                  - message_sent
+                  - wrong_number
+                notes:
+                  type: string
+                  maxLength: 500
+      responses:
+        '201':
+          description: Contact-driver log created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/school/settings:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardSchoolSettingsShow
+      summary: Show safe school, academic, attendance, and notification settings
+      responses:
+        '200':
+          description: School settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    patch:
+      tags:
+      - Foundation
+      operationId: dashboardSchoolSettingsUpdate
+      summary: Update safe dashboard school settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                school:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    timezone:
+                      type: string
+                    locale:
+                      type: string
+                    currency:
+                      type: string
+                attendance:
+                  type: object
+                  properties:
+                    late_after_minutes:
+                      type: integer
+                    absence_warning_threshold:
+                      type: integer
+                notifications:
+                  type: object
+                  properties:
+                    push_enabled:
+                      type: boolean
+                    sms_enabled:
+                      type: boolean
+                    email_enabled:
+                      type: boolean
+      responses:
+        '200':
+          description: School settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/school/integrations:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardSchoolIntegrationsList
+      summary: List masked integration settings
+      responses:
+        '200':
+          description: Integration settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/school/integrations/{integration}:
+    patch:
+      tags:
+      - Foundation
+      operationId: dashboardSchoolIntegrationsUpdate
+      summary: Update one integration without returning raw secrets
+      parameters:
+      - name: integration
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                  - not_configured
+                  - connected
+                  - disabled
+                  - error
+                api_key:
+                  type: string
+                  writeOnly: true
+                config:
+                  type: object
+      responses:
+        '200':
+          description: Integration updated with masked secret metadata only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/school/integrations/{integration}/test:
+    post:
+      tags:
+      - Foundation
+      operationId: dashboardSchoolIntegrationsTest
+      summary: Run a safe local readiness check for one integration
+      parameters:
+      - name: integration
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Integration test result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/audit-logs:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardAuditLogsList
+      summary: List tenant-scoped dashboard audit logs
+      parameters:
+      - name: actor_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: action
+        in: query
+        schema:
+          type: string
+          maxLength: 128
+      - name: entity_type
+        in: query
+        schema:
+          type: string
+          maxLength: 128
+      - name: entity_id
+        in: query
+        schema:
+          type: string
+          maxLength: 128
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/audit-logs/{auditLog}:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardAuditLogsShow
+      summary: Show one tenant-scoped dashboard audit log
+      parameters:
+      - name: auditLog
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Audit log detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /dashboard/rbac/roles:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardRbacRolesList
+      summary: List dashboard RBAC roles with permission keys
+      responses:
+        '200':
+          description: RBAC roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - Foundation
+      operationId: dashboardRbacRolesCreate
+      summary: Create a tenant-local custom role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - key
+              - name
+              properties:
+                key:
+                  type: string
+                  pattern: ^[a-z][a-z0-9_]*$
+                name:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/rbac/permissions:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardRbacPermissionsList
+      summary: List available backend permission keys
+      responses:
+        '200':
+          description: Permission catalog
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/rbac/matrix:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardRbacMatrixShow
+      summary: Show role-permission matrix
+      responses:
+        '200':
+          description: RBAC matrix
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      tags:
+      - Foundation
+      operationId: dashboardRbacMatrixUpdate
+      summary: Replace permissions for selected roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - roles
+              properties:
+                roles:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - key
+                    - permissions
+                    properties:
+                      key:
+                        type: string
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+      responses:
+        '200':
+          description: Matrix updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/admin-accounts:
+    get:
+      tags:
+      - Foundation
+      operationId: dashboardAdminAccountsList
+      summary: List dashboard admin accounts for the active school
+      responses:
+        '200':
+          description: Dashboard admin accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Foundation
+      operationId: dashboardAdminAccountsCreate
+      summary: Create or attach a dashboard admin account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - email
+              - role_key
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                role_key:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                  - active
+                  - suspended
+      responses:
+        '201':
+          description: Dashboard admin account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/admin-accounts/{account}/role:
+    patch:
+      tags:
+      - Foundation
+      operationId: dashboardAdminAccountsRoleUpdate
+      summary: Update a dashboard admin account role
+      parameters:
+      - name: account
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - role_key
+              properties:
+                role_key:
+                  type: string
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/admin-accounts/{account}/status:
+    patch:
+      tags:
+      - Foundation
+      operationId: dashboardAdminAccountsStatusUpdate
+      summary: Suspend or reactivate a dashboard admin account membership
+      parameters:
+      - name: account
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                  - active
+                  - suspended
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/broadcasts:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsList
+      summary: List dashboard broadcasts
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - draft
+          - scheduled
+          - sent
+          - cancelled
+      - name: type
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated broadcasts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsCreate
+      summary: Create a draft or scheduled dashboard broadcast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - title
+              - body
+              - type
+              - target
+              - channels
+              properties:
+                title:
+                  type: string
+                  maxLength: 180
+                body:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                  - announcement
+                  - alert
+                  - reminder
+                target:
+                  type: object
+                  required:
+                  - type
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                      - all
+                      - grade_level
+                      - section
+                      - students
+                      - parents
+                      - teachers
+                      - roles
+                      - custom_users
+                    ids:
+                      type: array
+                      items:
+                        type: string
+                channels:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - database
+                    - push
+                    - sms
+                scheduled_at:
+                  type: string
+                  format: date-time
+                priority:
+                  type: string
+                  enum:
+                  - low
+                  - normal
+                  - high
+                  - urgent
+      responses:
+        '201':
+          description: Broadcast created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/broadcasts/{broadcast}:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsShow
+      summary: Show one dashboard broadcast
+      parameters:
+      - name: broadcast
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Broadcast detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/broadcasts/{broadcast}/send:
+    post:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsSend
+      summary: Send a draft broadcast now or schedule it if scheduled_at is in the future
+      parameters:
+      - name: broadcast
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Broadcast sent or scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /dashboard/broadcasts/{broadcast}/cancel:
+    post:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsCancel
+      summary: Cancel a draft or scheduled broadcast
+      parameters:
+      - name: broadcast
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Broadcast cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /dashboard/broadcasts/{broadcast}/deliveries:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardBroadcastsDeliveries
+      summary: Return delivery status counts for one broadcast
+      parameters:
+      - name: broadcast
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Broadcast delivery counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/behavior-notes:
+    get:
+      tags:
+      - Behavior
+      operationId: dashboardBehaviorNotesList
+      summary: List dashboard behavior notes with live ids for review actions
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - pending_review
+          - published
+          - acknowledged
+          - resolved
+          - rejected
+      - name: severity
+        in: query
+        schema:
+          type: string
+          enum:
+          - info
+          - warning
+          - serious
+      - name: student_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: section_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated dashboard behavior notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/leave-permits:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardLeavePermitsList
+      summary: List dashboard leave permits with live ids for review actions
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - pending
+          - approved
+          - rejected
+          - used
+          - expired
+      - name: student_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: section_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated dashboard leave permits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/schedules:
+    get:
+      tags:
+      - Academic
+      operationId: dashboardSchedulesList
+      summary: List dashboard schedules with schedule slot and teaching session live ids
+      parameters:
+      - name: academic_term_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: section_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: teacher_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: weekday
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 7
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated dashboard schedules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/schedules/conflicts/check:
+    post:
+      tags:
+      - Academic
+      operationId: dashboardSchedulesConflictCheck
+      summary: Check schedule slot conflicts before create/update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - academic_term_id
+              - allocation_id
+              - weekday
+              - starts_at
+              - ends_at
+              properties:
+                academic_term_id:
+                  type: integer
+                allocation_id:
+                  type: integer
+                weekday:
+                  type: integer
+                  minimum: 1
+                  maximum: 7
+                starts_at:
+                  type: string
+                  pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+                ends_at:
+                  type: string
+                  pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+                ignore_slot_id:
+                  type: integer
+      responses:
+        '200':
+          description: Conflict check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/calendar/events:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardCalendarEventsList
+      summary: List dashboard calendar events
+      parameters:
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - active
+          - cancelled
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated calendar events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Operations
+      operationId: dashboardCalendarEventsCreate
+      summary: Create a dashboard calendar event
+      responses:
+        '201':
+          description: Calendar event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/calendar/events/{event}:
+    get:
+      tags:
+      - Operations
+      operationId: dashboardCalendarEventsShow
+      summary: Show a dashboard calendar event
+      parameters:
+      - name: event
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Calendar event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      tags:
+      - Operations
+      operationId: dashboardCalendarEventsUpdate
+      summary: Update a dashboard calendar event
+      parameters:
+      - name: event
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Calendar event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Operations
+      operationId: dashboardCalendarEventsCancel
+      summary: Cancel a dashboard calendar event
+      parameters:
+      - name: event
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Calendar event cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /teacher/attendance/sessions/{session}/roster:
+    get:
+      tags:
+      - Attendance
+      operationId: teacherAttendanceRoster
+      summary: Return the authenticated teacher's roster for one teaching session
+      parameters:
+      - name: session
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Teacher session roster and optional draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /teacher/attendance/sessions/{session}/draft:
+    put:
+      tags:
+      - Attendance
+      operationId: teacherAttendanceDraftSave
+      summary: Save or replace a versioned attendance draft for the authenticated teacher
+      parameters:
+      - name: session
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Draft saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/attendance/sessions/{session}/submit:
+    post:
+      tags:
+      - Attendance
+      operationId: teacherAttendanceSubmit
+      summary: Submit complete attendance records for the authenticated teacher's session
+      parameters:
+      - name: session
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Attendance submitted or idempotently replayed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/attendance:
+    get:
+      tags:
+      - Attendance
+      operationId: parentStudentAttendanceSummary
+      summary: Return attendance records and derived summary for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      responses:
+        '200':
+          description: Student attendance records and derived status counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/medical-excuses:
+    post:
+      tags:
+      - Attendance
+      operationId: parentMedicalExcuseCreate
+      summary: Submit a medical excuse for an owned student using an already uploaded clean private file
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Medical excuse created in pending state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /medical-excuses:
+    get:
+      tags:
+      - Attendance
+      operationId: medicalExcuseIndex
+      summary: List latest medical excuses for attendance reviewers
+      responses:
+        '200':
+          description: Latest medical excuses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /medical-excuses/{excuse}/approve:
+    post:
+      tags:
+      - Attendance
+      operationId: medicalExcuseApprove
+      summary: Approve a pending medical excuse and mark matching absences as excused
+      parameters:
+      - name: excuse
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Medical excuse approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /medical-excuses/{excuse}/reject:
+    post:
+      tags:
+      - Attendance
+      operationId: medicalExcuseReject
+      summary: Reject a pending medical excuse without changing attendance records
+      parameters:
+      - name: excuse
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Medical excuse rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assignments:
+    get:
+      tags:
+      - Assignments
+      operationId: teacherAssignmentsList
+      summary: List assignments owned by the authenticated teacher
+      responses:
+        '200':
+          description: Teacher assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - Assignments
+      operationId: teacherAssignmentsCreate
+      summary: Create a draft assignment with optional clean private-file attachments
+      responses:
+        '201':
+          description: Assignment draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assignments/{assignment}:
+    patch:
+      tags:
+      - Assignments
+      operationId: teacherAssignmentsUpdate
+      summary: Update an owned draft assignment
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assignment draft updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Assignments
+      operationId: teacherAssignmentsArchive
+      summary: Archive an owned assignment instead of hard-deleting it
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assignment archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /teacher/assignments/{assignment}/publish:
+    post:
+      tags:
+      - Assignments
+      operationId: teacherAssignmentsPublish
+      summary: Publish an owned draft assignment and enqueue an outbox event after commit
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assignment published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /parent/students/{student}/assignments:
+    get:
+      tags:
+      - Assignments
+      operationId: parentStudentAssignmentsList
+      summary: List published assignments for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Published assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /parent/students/{student}/assignments/{assignment}/submissions:
+    post:
+      tags:
+      - Assignments
+      operationId: parentStudentAssignmentSubmit
+      summary: Submit or replace an owned student's assignment submission before deadline
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assignment submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/assignments/{assignment}/attachments/{file}/download:
+    get:
+      tags:
+      - Assignments
+      operationId: parentStudentAssignmentAttachmentDownload
+      summary: Download a clean attachment from a published assignment visible to an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: file
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Attachment stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /student/assignments:
+    get:
+      tags:
+      - Assignments
+      operationId: studentAssignmentsList
+      summary: List published assignments for the authenticated student profile
+      responses:
+        '200':
+          description: Published assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /student/assignments/{assignment}/submissions:
+    post:
+      tags:
+      - Assignments
+      operationId: studentAssignmentSubmit
+      summary: Submit or replace the authenticated student's assignment submission before deadline
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assignment submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /student/assignments/{assignment}/attachments/{file}/download:
+    get:
+      tags:
+      - Assignments
+      operationId: studentAssignmentAttachmentDownload
+      summary: Download a clean attachment from a published assignment visible to the authenticated student
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: file
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Attachment stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /notifications:
+    get:
+      tags:
+      - Notifications
+      operationId: notificationsList
+      summary: List the authenticated user's database notification deliveries
+      responses:
+        '200':
+          description: Notification inbox
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /notifications/{delivery}/read:
+    post:
+      tags:
+      - Notifications
+      operationId: notificationsMarkRead
+      summary: Mark one owned database notification delivery as read
+      parameters:
+      - name: delivery
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /notification-preferences:
+    patch:
+      tags:
+      - Notifications
+      operationId: notificationPreferenceUpdate
+      summary: Enable or disable a notification channel for one notification type
+      responses:
+        '200':
+          description: Notification preference updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags:
+      - Shared
+      summary: Get notification preferences
+      operationId: notificationPreferencesGet
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/behavior-notes:
+    post:
+      tags:
+      - Behavior
+      operationId: teacherBehaviorNoteCreate
+      summary: Create a behavior note for review
+      responses:
+        '201':
+          description: Behavior note created in pending review state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /behavior-notes/{note}/publish:
+    post:
+      tags:
+      - Behavior
+      operationId: behaviorNotePublish
+      summary: Publish a pending behavior note
+      parameters:
+      - name: note
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Behavior note published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /behavior-notes/{note}/reject:
+    post:
+      tags:
+      - Behavior
+      operationId: behaviorNoteReject
+      summary: Reject a pending behavior note
+      parameters:
+      - name: note
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Behavior note rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /parent/behavior-notes/{note}/acknowledge:
+    post:
+      tags:
+      - Behavior
+      operationId: behaviorNoteAcknowledge
+      summary: Acknowledge a published behavior note for an owned student
+      parameters:
+      - name: note
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Behavior note acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /behavior-notes/{note}/resolve:
+    post:
+      tags:
+      - Behavior
+      operationId: behaviorNoteResolve
+      summary: Resolve a published or acknowledged behavior note
+      parameters:
+      - name: note
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Behavior note resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /behavior-notes/{note}/recommendations:
+    post:
+      tags:
+      - Behavior
+      operationId: behaviorNoteRecommendationCreate
+      summary: Add a published recommendation to a visible behavior note
+      parameters:
+      - name: note
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Recommendation added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /parent/students/{student}/behavior-notes:
+    get:
+      tags:
+      - Behavior
+      operationId: parentStudentBehaviorNotes
+      summary: List published behavior notes and recommendations for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Published behavior notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /conversations:
+    get:
+      tags:
+      - Messaging
+      operationId: conversationsList
+      summary: List conversation threads where the authenticated user is a participant
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Conversation threads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - Messaging
+      operationId: conversationsCreate
+      summary: Create an authorized conversation thread with one related participant
+      responses:
+        '201':
+          description: Conversation thread created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/messages:
+    get:
+      tags:
+      - Messaging
+      operationId: conversationMessagesList
+      summary: List latest messages for a participant thread
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Conversation messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - Messaging
+      operationId: conversationMessagesSend
+      summary: Send an idempotent message with optional clean owned attachments
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/send:
+    post:
+      tags:
+      - Messaging
+      operationId: conversationMessagesSendAlias
+      summary: Alias for sending an idempotent message with optional clean owned attachments
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/read:
+    post:
+      tags:
+      - Messaging
+      operationId: conversationMarkRead
+      summary: Mark a participant thread as read for the authenticated user
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Thread marked read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /parent/students/{student}/leave-permits:
+    post:
+      tags:
+      - Operations
+      operationId: leavePermitCreate
+      summary: Parent requests a leave permit for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Leave permit requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /leave-permits/{permit}/approve:
+    post:
+      tags:
+      - Operations
+      operationId: leavePermitApprove
+      summary: Approve a pending leave permit and return a one-time gate token
+      parameters:
+      - name: permit
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Leave permit approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /leave-permits/{permit}/reject:
+    post:
+      tags:
+      - Operations
+      operationId: leavePermitReject
+      summary: Reject a pending leave permit
+      parameters:
+      - name: permit
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Leave permit rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /leave-permits/use-token:
+    post:
+      tags:
+      - Operations
+      operationId: leavePermitUseToken
+      summary: Consume a valid one-time leave permit gate token
+      responses:
+        '200':
+          description: Leave permit token used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /parent-summons:
+    post:
+      tags:
+      - Operations
+      operationId: parentSummonsCreate
+      summary: Create a parent summons for a student-parent link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentSummonsCreateInput'
+      responses:
+        '201':
+          description: Parent summons created and parent notified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/summons:
+    get:
+      tags:
+      - Operations
+      operationId: parentStudentSummons
+      summary: List summons for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Parent summons list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /parent/summons/{summons}/respond:
+    post:
+      tags:
+      - Operations
+      operationId: parentSummonsRespond
+      summary: Parent accepts or declines a pending summons
+      parameters:
+      - name: summons
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentSummonsResponseInput'
+      responses:
+        '200':
+          description: Parent summons response recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher-substitutions:
+    post:
+      tags:
+      - Operations
+      operationId: teacherSubstitutionCreate
+      summary: Assign a substitute teacher for a teaching session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherSubstitutionCreateInput'
+      responses:
+        '201':
+          description: Teacher substitution created and substitute notified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/substitutions:
+    get:
+      tags:
+      - Operations
+      operationId: teacherSubstitutions
+      summary: List substitution requests for the authenticated teacher
+      responses:
+        '200':
+          description: Teacher substitution requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /teacher/substitutions/{substitution}/accept:
+    post:
+      tags:
+      - Operations
+      operationId: teacherSubstitutionAccept
+      summary: Accept a pending substitution request
+      parameters:
+      - name: substitution
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Substitution accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /teacher/substitutions/{substitution}/decline:
+    post:
+      tags:
+      - Operations
+      operationId: teacherSubstitutionDecline
+      summary: Decline a pending substitution request
+      parameters:
+      - name: substitution
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Substitution declined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /teacher/assessments:
+    post:
+      tags:
+      - Assessment
+      operationId: teacherAssessmentCreate
+      summary: Create a draft assessment for one of the teacher allocations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreateInput'
+      responses:
+        '201':
+          description: Assessment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags:
+      - Teacher
+      summary: List teacher assessments
+      operationId: teacherAssessments
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: allocation_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: academic_term_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments/{assessment}/roster:
+    get:
+      tags:
+      - Assessment
+      operationId: teacherAssessmentRoster
+      summary: Get active section roster with existing grade entries
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assessment roster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /teacher/assessments/{assessment}/grades:
+    put:
+      tags:
+      - Assessment
+      operationId: teacherAssessmentSaveGrades
+      summary: Bulk save grade entries with revision checks
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeEntryBulkInput'
+      responses:
+        '200':
+          description: Grade entries saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments/{assessment}/submit:
+    post:
+      tags:
+      - Assessment
+      operationId: teacherAssessmentSubmit
+      summary: Submit a draft assessment for approval
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assessment submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /assessments/{assessment}/approve:
+    post:
+      tags:
+      - Assessment
+      operationId: assessmentApprove
+      summary: Approve a pending assessment
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assessment approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /assessments/{assessment}/publish:
+    post:
+      tags:
+      - Assessment
+      operationId: assessmentPublish
+      summary: Publish approved assessment grades and notify parents
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assessment published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /assessments/{assessment}/lock:
+    post:
+      tags:
+      - Assessment
+      operationId: assessmentLock
+      summary: Lock a published assessment against further grade edits
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Assessment locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /parent/students/{student}/reports/recent-assessments:
+    get:
+      tags:
+      - Assessment
+      operationId: parentRecentAssessments
+      summary: List published assessment grades for an owned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 25
+      responses:
+        '200':
+          description: Published assessment report rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /parent/students/{student}/reports/certificate:
+    post:
+      tags:
+      - Assessment
+      operationId: parentCertificateRequest
+      summary: Queue an asynchronous certificate PDF generation job
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - academic_term_id
+              properties:
+                academic_term_id:
+                  $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Certificate generation queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/grade-entries/{entry}/appeals:
+    post:
+      tags:
+      - Assessment
+      operationId: gradeAppealCreate
+      summary: Open one appeal for a published owned grade entry
+      parameters:
+      - name: entry
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type: string
+                  maxLength: 1000
+      responses:
+        '201':
+          description: Grade appeal opened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /grade-appeals/{appeal}/approve:
+    post:
+      tags:
+      - Assessment
+      operationId: gradeAppealApprove
+      summary: Approve an open grade appeal
+      parameters:
+      - name: appeal
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Grade appeal approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /grade-appeals/{appeal}/reject:
+    post:
+      tags:
+      - Assessment
+      operationId: gradeAppealReject
+      summary: Reject an open grade appeal
+      parameters:
+      - name: appeal
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Grade appeal rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /transport/routes:
+    post:
+      tags:
+      - Transport
+      operationId: transportRouteCreate
+      summary: Create a bus route with capacity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - code
+              - capacity
+              properties:
+                name:
+                  type: string
+                code:
+                  type: string
+                capacity:
+                  type: integer
+                  minimum: 1
+                driver_name:
+                  type:
+                  - string
+                  - 'null'
+      responses:
+        '201':
+          description: Bus route created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /transport/routes/{route}/assignments:
+    post:
+      tags:
+      - Transport
+      operationId: transportRouteAssignStudent
+      summary: Assign a student to an active bus route within route capacity
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Bus route assignment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /transport/routes/{route}/trips:
+    post:
+      tags:
+      - Transport
+      operationId: transportTripCreate
+      summary: Create a scheduled bus trip for a route
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Bus trip created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /transport/trips/{trip}/tracking-events:
+    post:
+      tags:
+      - Transport
+      operationId: transportTrackingIngest
+      summary: Ingest a newer GPS event for a bus trip
+      parameters:
+      - name: trip
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Tracking event accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /parent/students/{student}/transport/live-status:
+    get:
+      tags:
+      - Transport
+      operationId: parentTransportLiveStatus
+      summary: Get latest bus position for an owned assigned student
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Latest live status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /parent/students/{student}/transport/opt-outs:
+    post:
+      tags:
+      - Transport
+      operationId: parentTransportOptOut
+      summary: Opt an owned student out of one bus trip date and direction
+      parameters:
+      - name: student
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Opt-out saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /transport/routes/{route}/alerts:
+    post:
+      tags:
+      - Transport
+      operationId: transportAlertCreate
+      summary: Create a transport alert and notify deduplicated route parents
+      parameters:
+      - name: route
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '201':
+          description: Transport alert created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+  /dashboard/assessments:
+    get:
+      tags:
+      - Assessment
+      operationId: dashboardAssessmentsList
+      summary: List dashboard assessments for grade approval
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - draft
+          - pending_approval
+          - published
+          - locked
+      - name: academic_term_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: teacher_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: section_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: subject_id
+        in: query
+        schema:
+          $ref: '#/components/schemas/StringId'
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Paginated dashboard assessments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/assessments/{assessment}:
+    get:
+      tags:
+      - Assessment
+      operationId: dashboardAssessmentsShow
+      summary: Show a dashboard assessment with grade entries
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '200':
+          description: Dashboard assessment detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /dashboard/assessments/{assessment}/grades:
+    put:
+      tags:
+      - Assessment
+      operationId: dashboardAssessmentsUpdateGrades
+      summary: Update assessment grade entries from the dashboard
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - entries
+              properties:
+                entries:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: object
+                    required:
+                    - student_id
+                    properties:
+                      student_id:
+                        type: integer
+                      score:
+                        type: number
+                        nullable: true
+                      feedback:
+                        type: string
+                        nullable: true
+                      note:
+                        type: string
+                        nullable: true
+                      revision:
+                        type: integer
+                        nullable: true
+      responses:
+        '200':
+          description: Grade entries updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/assessments/{assessment}/exports:
+    post:
+      tags:
+      - Assessment
+      operationId: dashboardAssessmentExportsCreate
+      summary: Queue an official assessment grade-sheet export
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StringId'
+      responses:
+        '202':
+          description: Grade-sheet export queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /dashboard/reports/exports/{export}:
+    get:
+      tags:
+      - Reporting
+      operationId: dashboardReportExportsShow
+      summary: Read a queued dashboard report export status
+      parameters:
+      - name: export
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Report export status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /dashboard/canvas-configs/{key}:
+    get:
+      tags:
+      - Settings
+      operationId: dashboardCanvasConfigsShow
+      summary: Read a persisted dashboard canvas configuration
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9._-]{1,79}$
+      responses:
+        '200':
+          description: Dashboard canvas configuration or empty state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags:
+      - Settings
+      operationId: dashboardCanvasConfigsSave
+      summary: Persist a dashboard canvas configuration
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9._-]{1,79}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - payload
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                  maxLength: 120
+                payload:
+                  type: object
+                  additionalProperties: true
+                expected_version:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Dashboard canvas configuration saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /notifications/read-all:
+    post:
+      tags:
+      - Shared
+      summary: Mark all notifications as read
+      operationId: notificationsReadAll
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/categories:
+    get:
+      tags:
+      - Support
+      summary: List support categories
+      operationId: supportCategories
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets:
+    get:
+      tags:
+      - Support
+      summary: List current user support tickets
+      operationId: supportTickets
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Support
+      summary: Open support ticket
+      operationId: supportTicketCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportTicketCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets/{ticket}:
+    get:
+      tags:
+      - Support
+      summary: Get owned support ticket
+      operationId: supportTicketShow
+      parameters:
+      - name: ticket
+        in: path
+        required: true
+        description: ticket
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets/{ticket}/messages:
+    post:
+      tags:
+      - Support
+      summary: Reply to owned support ticket
+      operationId: supportTicketReply
+      parameters:
+      - name: ticket
+        in: path
+        required: true
+        description: ticket
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - message
+              properties:
+                message:
+                  type: string
+                  maxLength: 5000
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students:
+    get:
+      tags:
+      - Parent
+      summary: List children linked to authenticated parent
+      operationId: parentStudents
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/profile:
+    get:
+      tags:
+      - Parent
+      summary: Get parent profile
+      operationId: parentProfile
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags:
+      - Parent
+      summary: Update allowed parent profile fields
+      operationId: parentProfileUpdate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  maxLength: 120
+                phone:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/overview:
+    get:
+      tags:
+      - Parent
+      summary: Aggregated parent home overview for a child
+      operationId: parentStudentOverview
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/terms:
+    get:
+      tags:
+      - Parent
+      summary: List terms available for grade reports
+      operationId: parentReportTerms
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/terms/{term}:
+    get:
+      tags:
+      - Parent
+      summary: Term grade report including grade entry ids
+      operationId: parentTermReport
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: term
+        in: path
+        required: true
+        description: term
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities:
+    get:
+      tags:
+      - Parent
+      summary: List school activities for linked student
+      operationId: parentActivities
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - upcoming
+          - past
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}:
+    get:
+      tags:
+      - Parent
+      summary: Get activity detail
+      operationId: parentActivityShow
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}/register:
+    post:
+      tags:
+      - Parent
+      summary: Register linked student in activity
+      operationId: parentActivityRegister
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}/registration:
+    delete:
+      tags:
+      - Parent
+      summary: Cancel activity registration
+      operationId: parentActivityCancel
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/finance/summary:
+    get:
+      tags:
+      - Payments
+      summary: Finance summary for linked student
+      operationId: parentFinanceSummary
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices:
+    get:
+      tags:
+      - Payments
+      summary: List student invoices
+      operationId: parentInvoices
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - partial
+          - paid
+          - overdue
+          - cancelled
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices/{invoice}:
+    get:
+      tags:
+      - Payments
+      summary: Get student invoice
+      operationId: parentInvoiceShow
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: invoice
+        in: path
+        required: true
+        description: invoice
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/methods:
+    get:
+      tags:
+      - Payments
+      summary: List enabled payment methods
+      operationId: paymentMethods
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices/{invoice}/payment-sessions:
+    post:
+      tags:
+      - Payments
+      summary: Create idempotent invoice payment session
+      operationId: invoicePaymentSessionCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: invoice
+        in: path
+        required: true
+        description: invoice
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoicePaymentSessionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/{payment}:
+    get:
+      tags:
+      - Payments
+      summary: Get owned payment session status
+      operationId: paymentShow
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        description: payment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/{payment}/receipt:
+    get:
+      tags:
+      - Payments
+      summary: Get receipt for paid payment
+      operationId: paymentReceipt
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        description: payment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet:
+    get:
+      tags:
+      - Wallet
+      summary: Get student wallet
+      operationId: parentWallet
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/transactions:
+    get:
+      tags:
+      - Wallet
+      summary: List wallet transactions
+      operationId: parentWalletTransactions
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/top-up-sessions:
+    post:
+      tags:
+      - Wallet
+      summary: Create idempotent wallet top-up session
+      operationId: walletTopUpSessionCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletTopUpSessionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/payment-token:
+    post:
+      tags:
+      - Wallet
+      summary: Issue short-lived single-use canteen QR token
+      operationId: walletPaymentTokenCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                max_amount_minor:
+                  type:
+                  - integer
+                  - 'null'
+                  minimum: 1
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /webhooks/payments/{provider}:
+    post:
+      tags:
+      - Payments
+      summary: Provider payment webhook (server-to-server)
+      operationId: paymentWebhook
+      security: []
+      parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - moyasar
+          - fake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/dashboard/summary:
+    get:
+      tags:
+      - Teacher
+      summary: Teacher home summary
+      operationId: teacherDashboardSummary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes:
+    get:
+      tags:
+      - Teacher
+      summary: List current teacher allocations/classes
+      operationId: teacherClasses
+      parameters:
+      - name: academic_term_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}:
+    get:
+      tags:
+      - Teacher
+      summary: Class detail owned by teacher
+      operationId: teacherClassDetail
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}/students:
+    get:
+      tags:
+      - Teacher
+      summary: Students in owned class
+      operationId: teacherClassStudents
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/schedule:
+    get:
+      tags:
+      - Teacher
+      summary: Daily teaching schedule with attendance session IDs
+      operationId: teacherSchedule
+      parameters:
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}/gradebook:
+    get:
+      tags:
+      - Teacher
+      summary: Owned class gradebook
+      operationId: teacherGradebook
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: School-scoped Laravel Sanctum bearer token issued per device.
+  parameters:
+    DeviceSessionId:
+      name: deviceSession
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    FilePublicId:
+      name: publicId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9A-HJKMNP-TV-Z]{26}$
+    Signature:
+      name: signature
+      in: query
+      required: true
+      schema:
+        type: string
+    Expires:
+      name: expires
+      in: query
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PerPage:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+    AcademicYearId:
+      name: academicYear
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    AcademicTermId:
+      name: academicTerm
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    GradeLevelId:
+      name: gradeLevel
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    SubjectId:
+      name: subject
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    SectionId:
+      name: section
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    TeacherId:
+      name: teacher
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    ParentId:
+      name: parent
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    StudentId:
+      name: student
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    StudentParentId:
+      name: studentParent
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    AllocationId:
+      name: allocation
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+    ScheduleSlotId:
+      name: slot
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/StringId'
+  responses:
+    Unauthenticated:
+      description: Missing, invalid, expired, or revoked authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Authenticated user is not allowed to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Resource does not exist or is hidden by policy
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: Current resource state conflicts with the requested action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    RateLimited:
+      description: Request rate limit exceeded
+      headers:
+        Retry-After:
+          description: Seconds until the client may retry when available
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    StringId:
+      type: string
+      minLength: 1
+      description: IDs are serialized as strings to avoid client integer precision loss.
+    Timestamp:
+      type: string
+      format: date-time
+      examples:
+      - '2026-07-12T18:30:00Z'
+    RequestMeta:
+      type: object
+      required:
+      - request_id
+      properties:
+        request_id:
+          type: string
+          pattern: ^[0-9A-HJKMNP-TV-Z]{26}$|^[A-Za-z0-9._:-]{1,128}$
+    PaginationLinks:
+      type: object
+      required:
+      - next
+      - prev
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri-reference
+        prev:
+          type:
+          - string
+          - 'null'
+          format: uri-reference
+    PaginationMeta:
+      allOf:
+      - $ref: '#/components/schemas/RequestMeta'
+      - type: object
+        properties:
+          per_page:
+            type: integer
+            minimum: 1
+            maximum: 100
+          next_cursor:
+            type:
+            - string
+            - 'null'
+          prev_cursor:
+            type:
+            - string
+            - 'null'
+          current_page:
+            type: integer
+            minimum: 1
+          last_page:
+            type: integer
+            minimum: 1
+          total:
+            type: integer
+            minimum: 0
+    SuccessEnvelope:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data: true
+        meta:
+          $ref: '#/components/schemas/RequestMeta'
+    CollectionEnvelope:
+      type: object
+      required:
+      - data
+      - links
+      - meta
+      properties:
+        data:
+          type: array
+          items: true
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ErrorEnvelope:
+      type: object
+      required:
+      - message
+      - code
+      - meta
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          enum:
+          - BAD_REQUEST
+          - UNAUTHENTICATED
+          - FORBIDDEN
+          - NOT_FOUND
+          - METHOD_NOT_ALLOWED
+          - CONFLICT
+          - VALIDATION_FAILED
+          - RATE_LIMITED
+          - HTTP_ERROR
+          - SERVER_ERROR
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        meta:
+          $ref: '#/components/schemas/RequestMeta'
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      - device_id
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        device_id:
+          type: string
+          maxLength: 128
+          description: Stable app-installation UUID generated by the client.
+        device_name:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+          description: Human-readable device/app name.
+    LoginResponse:
+      allOf:
+      - $ref: '#/components/schemas/AuthContext'
+      - type: object
+        required:
+        - token
+        - token_type
+        properties:
+          token:
+            type: string
+          token_type:
+            type: string
+            const: Bearer
+          expires_at:
+            type:
+            - string
+            - 'null'
+            format: date-time
+    AuthContext:
+      type: object
+      required:
+      - user
+      - school
+      - device_session
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        school:
+          $ref: '#/components/schemas/School'
+        device_session:
+          $ref: '#/components/schemas/DeviceSession'
+    User:
+      type: object
+      required:
+      - id
+      - name
+      - email
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    School:
+      type: object
+      required:
+      - id
+      - code
+      - name
+      - timezone
+      - locale
+      - currency
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        locale:
+          type: string
+          enum:
+          - ar
+          - en
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+    ParentSummonsCreateInput:
+      type: object
+      required:
+      - student_id
+      - parent_id
+      - scheduled_at
+      - reason
+      properties:
+        student_id:
+          $ref: '#/components/schemas/StringId'
+        parent_id:
+          $ref: '#/components/schemas/StringId'
+        scheduled_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          maxLength: 255
+    ParentSummonsResponseInput:
+      type: object
+      required:
+      - response
+      properties:
+        response:
+          type: string
+          enum:
+          - accepted
+          - declined
+        response_note:
+          type:
+          - string
+          - 'null'
+          maxLength: 1000
+    ParentSummons:
+      type: object
+      required:
+      - id
+      - student_id
+      - parent_id
+      - scheduled_at
+      - reason
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        student_id:
+          $ref: '#/components/schemas/StringId'
+        parent_id:
+          $ref: '#/components/schemas/StringId'
+        scheduled_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+        status:
+          type: string
+          enum:
+          - pending
+          - responded
+          - cancelled
+        response:
+          type:
+          - string
+          - 'null'
+          enum:
+          - accepted
+          - declined
+          - null
+        response_note:
+          type:
+          - string
+          - 'null'
+        responded_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    TeacherSubstitutionCreateInput:
+      type: object
+      required:
+      - teaching_session_id
+      - substitute_teacher_id
+      properties:
+        teaching_session_id:
+          $ref: '#/components/schemas/StringId'
+        substitute_teacher_id:
+          $ref: '#/components/schemas/StringId'
+        reason:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+    TeacherSubstitution:
+      type: object
+      required:
+      - id
+      - teaching_session_id
+      - original_teacher_id
+      - substitute_teacher_id
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        teaching_session_id:
+          $ref: '#/components/schemas/StringId'
+        original_teacher_id:
+          $ref: '#/components/schemas/StringId'
+        substitute_teacher_id:
+          $ref: '#/components/schemas/StringId'
+        reason:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - pending
+          - accepted
+          - declined
+          - cancelled
+        response_note:
+          type:
+          - string
+          - 'null'
+        responded_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    AssessmentCreateInput:
+      type: object
+      required:
+      - allocation_id
+      - title
+      - type
+      - max_score
+      properties:
+        allocation_id:
+          $ref: '#/components/schemas/StringId'
+        title:
+          type: string
+          maxLength: 180
+        type:
+          type: string
+          enum:
+          - quiz
+          - exam
+          - assignment
+          - project
+          - participation
+        max_score:
+          type: number
+          minimum: 0
+        weight:
+          type: number
+          minimum: 0
+    Assessment:
+      type: object
+      required:
+      - id
+      - academic_term_id
+      - allocation_id
+      - title
+      - type
+      - max_score
+      - weight
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        academic_term_id:
+          $ref: '#/components/schemas/StringId'
+        allocation_id:
+          $ref: '#/components/schemas/StringId'
+        title:
+          type: string
+        type:
+          type: string
+        max_score:
+          type: string
+        weight:
+          type: string
+        status:
+          type: string
+          enum:
+          - draft
+          - pending_approval
+          - published
+          - locked
+    GradeEntryBulkInput:
+      type: object
+      required:
+      - entries
+      properties:
+        entries:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: object
+            required:
+            - student_id
+            properties:
+              student_id:
+                $ref: '#/components/schemas/StringId'
+              score:
+                type:
+                - number
+                - 'null'
+                minimum: 0
+              feedback:
+                type:
+                - string
+                - 'null'
+                maxLength: 1000
+              revision:
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+    GradeEntry:
+      type: object
+      required:
+      - id
+      - assessment_id
+      - student_id
+      - entered_by_teacher_id
+      - revision
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        assessment_id:
+          $ref: '#/components/schemas/StringId'
+        student_id:
+          $ref: '#/components/schemas/StringId'
+        score:
+          type:
+          - string
+          - 'null'
+        feedback:
+          type:
+          - string
+          - 'null'
+        entered_by_teacher_id:
+          $ref: '#/components/schemas/StringId'
+        revision:
+          type: integer
+    AcademicStructure:
+      type: object
+      required:
+      - academic_years
+      - grade_levels
+      - subjects
+      properties:
+        academic_years:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicYear'
+        grade_levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradeLevel'
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+    AcademicYearInput:
+      type: object
+      required:
+      - name
+      - starts_on
+      - ends_on
+      properties:
+        name:
+          type: string
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+    AcademicTermInput:
+      type: object
+      required:
+      - name
+      - starts_on
+      - ends_on
+      properties:
+        name:
+          type: string
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+    AcademicYear:
+      allOf:
+      - $ref: '#/components/schemas/AcademicYearInput'
+      - type: object
+        required:
+        - id
+        - status
+        - terms
+        properties:
+          id:
+            $ref: '#/components/schemas/StringId'
+          status:
+            type: string
+            enum:
+            - draft
+            - active
+            - closed
+          terms:
+            type: array
+            items:
+              $ref: '#/components/schemas/AcademicTerm'
+    AcademicTerm:
+      allOf:
+      - $ref: '#/components/schemas/AcademicTermInput'
+      - type: object
+        required:
+        - id
+        - academic_year_id
+        - status
+        properties:
+          id:
+            $ref: '#/components/schemas/StringId'
+          academic_year_id:
+            $ref: '#/components/schemas/StringId'
+          status:
+            type: string
+            enum:
+            - draft
+            - active
+            - closed
+    GradeLevel:
+      type: object
+      required:
+      - id
+      - name
+      - code
+      - sort_order
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        name:
+          type: string
+        code:
+          type: string
+        sort_order:
+          type: integer
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    Subject:
+      type: object
+      required:
+      - id
+      - name
+      - code
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        name:
+          type: string
+        code:
+          type: string
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    Section:
+      type: object
+      required:
+      - id
+      - grade_level_id
+      - name
+      - code
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        grade_level_id:
+          $ref: '#/components/schemas/StringId'
+        name:
+          type: string
+        code:
+          type: string
+        capacity:
+          type:
+          - integer
+          - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    TeacherProfile:
+      type: object
+      required:
+      - id
+      - employee_number
+      - full_name
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        central_user_id:
+          type:
+          - string
+          - 'null'
+        employee_number:
+          type: string
+        full_name:
+          type: string
+        email:
+          type:
+          - string
+          - 'null'
+          format: email
+        phone:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    GuardianProfile:
+      type: object
+      required:
+      - id
+      - full_name
+      - phone
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        central_user_id:
+          type:
+          - string
+          - 'null'
+        full_name:
+          type: string
+        email:
+          type:
+          - string
+          - 'null'
+          format: email
+        phone:
+          type: string
+        national_id_last4:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    StudentProfile:
+      type: object
+      required:
+      - id
+      - admission_number
+      - full_name
+      - grade_level_id
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        central_user_id:
+          type:
+          - string
+          - 'null'
+        admission_number:
+          type: string
+        full_name:
+          type: string
+        date_of_birth:
+          type:
+          - string
+          - 'null'
+          format: date
+        gender:
+          type:
+          - string
+          - 'null'
+          enum:
+          - male
+          - female
+          - other
+          - null
+        grade_level_id:
+          $ref: '#/components/schemas/StringId'
+        section_id:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    StudentParentLink:
+      type: object
+      required:
+      - id
+      - student_id
+      - parent_id
+      - relationship
+      - is_primary
+      - can_pickup
+      - valid_from
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        student_id:
+          $ref: '#/components/schemas/StringId'
+        parent_id:
+          $ref: '#/components/schemas/StringId'
+        relationship:
+          type: string
+        is_primary:
+          type: boolean
+        can_pickup:
+          type: boolean
+        valid_from:
+          type: string
+          format: date
+        valid_until:
+          type:
+          - string
+          - 'null'
+          format: date
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    TeacherSectionSubjectAllocation:
+      type: object
+      required:
+      - id
+      - academic_term_id
+      - teacher_id
+      - section_id
+      - subject_id
+      - weekly_quota
+      - is_homeroom
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        academic_term_id:
+          $ref: '#/components/schemas/StringId'
+        teacher_id:
+          $ref: '#/components/schemas/StringId'
+        section_id:
+          $ref: '#/components/schemas/StringId'
+        subject_id:
+          $ref: '#/components/schemas/StringId'
+        weekly_quota:
+          type: integer
+          minimum: 1
+          maximum: 40
+        is_homeroom:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    ScheduleSlot:
+      type: object
+      required:
+      - id
+      - academic_term_id
+      - allocation_id
+      - weekday
+      - starts_at
+      - ends_at
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        academic_term_id:
+          $ref: '#/components/schemas/StringId'
+        allocation_id:
+          $ref: '#/components/schemas/StringId'
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+        starts_at:
+          type: string
+          pattern: ^\\d{2}:\\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\\d{2}:\\d{2}$
+        room:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+    TeachingSession:
+      type: object
+      required:
+      - id
+      - schedule_slot_id
+      - allocation_id
+      - session_date
+      - starts_at
+      - ends_at
+      - status
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        schedule_slot_id:
+          $ref: '#/components/schemas/StringId'
+        allocation_id:
+          $ref: '#/components/schemas/StringId'
+        session_date:
+          type: string
+          format: date
+        starts_at:
+          type: string
+        ends_at:
+          type: string
+        status:
+          type: string
+          enum:
+          - scheduled
+          - active
+          - completed
+          - cancelled
+    AdminSearchResult:
+      type: object
+      required:
+      - type
+      - id
+      - label
+      properties:
+        type:
+          type: string
+          enum:
+          - teacher
+          - parent
+          - student
+        id:
+          $ref: '#/components/schemas/StringId'
+        label:
+          type: string
+        secondary:
+          type:
+          - string
+          - 'null'
+    AdminDashboardSummary:
+      type: object
+      required:
+      - teachers
+      - parents
+      - students
+      - sections
+      properties:
+        teachers:
+          type: integer
+          minimum: 0
+        parents:
+          type: integer
+          minimum: 0
+        students:
+          type: integer
+          minimum: 0
+        sections:
+          type: integer
+          minimum: 0
+    DeviceSession:
+      type: object
+      required:
+      - id
+      - school_id
+      - device_id
+      - app_type
+      - device_name
+      properties:
+        id:
+          $ref: '#/components/schemas/StringId'
+        school_id:
+          type:
+          - string
+          - 'null'
+        device_id:
+          type: string
+        app_type:
+          type: string
+        device_name:
+          type:
+          - string
+          - 'null'
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        revoked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    SupportTicketCreate:
+      type: object
+      required:
+      - category_key
+      - subject
+      - message
+      properties:
+        category_key:
+          type: string
+          enum:
+          - general
+          - technical
+          - academic
+          - attendance
+          - transport
+          - finance
+        subject:
+          type: string
+          maxLength: 180
+        message:
+          type: string
+          maxLength: 5000
+    InvoicePaymentSessionCreate:
+      type: object
+      required:
+      - method
+      - idempotency_key
+      properties:
+        method:
+          type: string
+          enum:
+          - mada
+          - apple_pay
+          - visa
+          - mastercard
+          - stc_pay
+          - samsung_pay
+        idempotency_key:
+          type: string
+          format: uuid
+      description: Method must also be enabled by server configuration. Amount is derived from invoice.
+    WalletTopUpSessionCreate:
+      type: object
+      required:
+      - amount_minor
+      - payment_method
+      - idempotency_key
+      properties:
+        amount_minor:
+          type: integer
+          minimum: 1
+        payment_method:
+          type: string
+          enum:
+          - mada
+          - apple_pay
+          - visa
+          - mastercard
+          - stc_pay
+          - samsung_pay
+        idempotency_key:
+          type: string
+          format: uuid

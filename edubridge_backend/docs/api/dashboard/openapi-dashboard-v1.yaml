@@ -1,0 +1,1093 @@
+openapi: 3.0.0
+info:
+  title: EduBridge Dashboard API
+  version: 1.0.0
+  description: API specifications for the EduBridge school management dashboard panel.
+servers:
+  - url: http://alpha.edubridge.test/api/v1
+    description: Local development environment
+  - url: https://{school_subdomain}.api.edubridge.com/api/v1
+    description: Production API URL
+    variables:
+      school_subdomain:
+        default: alpha
+        description: Subdomain assigned to the tenant school
+security:
+  - BearerAuth: []
+paths:
+  /dashboard/auth/login:
+    post:
+      summary: Authenticate Dashboard User
+      operationId: dashboardLogin
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+        '403':
+          description: Access denied due to unauthorized role (e.g. not an admin)
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/logout:
+    post:
+      summary: Terminate current session token
+      operationId: logout
+      tags:
+        - Authentication
+      responses:
+        '204':
+          description: Session terminated
+
+  /auth/me:
+    get:
+      summary: Get active user session profile
+      operationId: me
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Authenticated user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /auth/device-sessions:
+    get:
+      summary: List all active user sessions
+      operationId: deviceSessions
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: List of active device sessions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /auth/device-sessions/{deviceSession}/revoke:
+    post:
+      summary: Revoke a specific device session
+      operationId: revokeDeviceSession
+      tags:
+        - Authentication
+      parameters:
+        - name: deviceSession
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Device session revoked
+
+  /auth/device/push-token:
+    put:
+      summary: Update device FCM token
+      operationId: updatePushToken
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token:
+                  type: string
+                platform:
+                  type: string
+                  enum: [android, ios, web]
+      responses:
+        '204':
+          description: FCM Token saved
+
+  /school/lookup:
+    post:
+      summary: Onboard / Lookup school by invitation token
+      operationId: schoolLookup
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: School resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /admin/dashboard/summary:
+    get:
+      summary: Get dashboard widget counts
+      operationId: dashboardSummary
+      tags:
+        - Dashboard Overview
+      responses:
+        '200':
+          description: Summary counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /admin/search:
+    get:
+      summary: Global search across people
+      operationId: adminSearch
+      tags:
+        - Dashboard Overview
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, teachers, parents, students]
+            default: all
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /academic/structure:
+    get:
+      summary: Get complete academic structure
+      operationId: academicStructure
+      tags:
+        - Academic
+      responses:
+        '200':
+          description: Academic structure data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/audit-logs:
+    get:
+      summary: List tenant-scoped dashboard audit logs
+      operationId: dashboardAuditLogsList
+      tags:
+        - Audit Logs
+      parameters:
+        - name: actor_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: entity_type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Paginated audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/audit-logs/{auditLog}:
+    get:
+      summary: Show one tenant-scoped dashboard audit log
+      operationId: dashboardAuditLogsShow
+      tags:
+        - Audit Logs
+      parameters:
+        - name: auditLog
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit log detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/rbac/roles:
+    get:
+      summary: List dashboard roles
+      operationId: dashboardRbacRolesList
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: RBAC roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      summary: Create custom role
+      operationId: dashboardRbacRolesCreate
+      tags:
+        - RBAC
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/rbac/permissions:
+    get:
+      summary: List permission keys
+      operationId: dashboardRbacPermissionsList
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: Permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/rbac/matrix:
+    get:
+      summary: Get RBAC matrix
+      operationId: dashboardRbacMatrixShow
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: Matrix
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      summary: Update RBAC matrix
+      operationId: dashboardRbacMatrixUpdate
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: Matrix updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/admin-accounts:
+    get:
+      summary: List dashboard admin accounts
+      operationId: dashboardAdminAccountsList
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: Admin accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      summary: Create dashboard admin account
+      operationId: dashboardAdminAccountsCreate
+      tags:
+        - RBAC
+      responses:
+        '201':
+          description: Admin account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/admin-accounts/{account}/role:
+    patch:
+      summary: Update dashboard admin role
+      operationId: dashboardAdminAccountsRoleUpdate
+      tags:
+        - RBAC
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/admin-accounts/{account}/status:
+    patch:
+      summary: Update dashboard admin status
+      operationId: dashboardAdminAccountsStatusUpdate
+      tags:
+        - RBAC
+      parameters:
+        - name: account
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/broadcasts:
+    get:
+      summary: List broadcasts
+      operationId: dashboardBroadcastsList
+      tags:
+        - Broadcasts
+      responses:
+        '200':
+          description: Broadcasts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      summary: Create broadcast
+      operationId: dashboardBroadcastsCreate
+      tags:
+        - Broadcasts
+      responses:
+        '201':
+          description: Broadcast created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/broadcasts/{broadcast}:
+    get:
+      summary: Show broadcast
+      operationId: dashboardBroadcastsShow
+      tags:
+        - Broadcasts
+      parameters:
+        - name: broadcast
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Broadcast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/broadcasts/{broadcast}/send:
+    post:
+      summary: Send broadcast
+      operationId: dashboardBroadcastsSend
+      tags:
+        - Broadcasts
+      parameters:
+        - name: broadcast
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Broadcast sent or scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/broadcasts/{broadcast}/cancel:
+    post:
+      summary: Cancel broadcast
+      operationId: dashboardBroadcastsCancel
+      tags:
+        - Broadcasts
+      parameters:
+        - name: broadcast
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Broadcast cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/broadcasts/{broadcast}/deliveries:
+    get:
+      summary: Broadcast delivery counts
+      operationId: dashboardBroadcastsDeliveries
+      tags:
+        - Broadcasts
+      parameters:
+        - name: broadcast
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delivery counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/behavior-notes:
+    get:
+      summary: List dashboard behavior notes with live action ids
+      operationId: dashboardBehaviorNotesList
+      tags:
+        - Behavior
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: severity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: student_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: section_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard behavior notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/leave-permits:
+    get:
+      summary: List dashboard leave permits with live action ids
+      operationId: dashboardLeavePermitsList
+      tags:
+        - Operations
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: student_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: section_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard leave permits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/schedules:
+    get:
+      summary: List dashboard schedules with slot/session live ids
+      operationId: dashboardSchedulesList
+      tags:
+        - Academic
+      responses:
+        '200':
+          description: Dashboard schedules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/schedules/conflicts/check:
+    post:
+      summary: Check dashboard schedule conflicts
+      operationId: dashboardSchedulesConflictCheck
+      tags:
+        - Academic
+      responses:
+        '200':
+          description: Conflict check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/calendar/events:
+    get:
+      summary: List calendar events
+      operationId: dashboardCalendarEventsList
+      tags:
+        - Calendar
+      responses:
+        '200':
+          description: Calendar events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      summary: Create calendar event
+      operationId: dashboardCalendarEventsCreate
+      tags:
+        - Calendar
+      responses:
+        '201':
+          description: Calendar event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/calendar/events/{event}:
+    get:
+      summary: Show calendar event
+      operationId: dashboardCalendarEventsShow
+      tags:
+        - Calendar
+      parameters:
+        - name: event
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Calendar event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    patch:
+      summary: Update calendar event
+      operationId: dashboardCalendarEventsUpdate
+      tags:
+        - Calendar
+      parameters:
+        - name: event
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Calendar event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      summary: Cancel calendar event
+      operationId: dashboardCalendarEventsCancel
+      tags:
+        - Calendar
+      parameters:
+        - name: event
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Calendar event cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/assessments:
+    get:
+      summary: List dashboard assessments for approval
+      operationId: dashboardAssessmentsList
+      tags:
+        - Assessment
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending_approval, published, locked]
+        - name: academic_term_id
+          in: query
+          schema:
+            type: string
+        - name: teacher_id
+          in: query
+          schema:
+            type: string
+        - name: section_id
+          in: query
+          schema:
+            type: string
+        - name: subject_id
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Dashboard assessments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/assessments/{assessment}:
+    get:
+      summary: Show dashboard assessment with entries
+      operationId: dashboardAssessmentsShow
+      tags:
+        - Assessment
+      parameters:
+        - name: assessment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard assessment detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/assessments/{assessment}/grades:
+    put:
+      summary: Update assessment grade entries from dashboard
+      operationId: dashboardAssessmentsUpdateGrades
+      tags:
+        - Assessment
+      parameters:
+        - name: assessment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade entries updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/assessments/{assessment}/exports:
+    post:
+      summary: Queue assessment grade-sheet export
+      operationId: dashboardAssessmentExportsCreate
+      tags:
+        - Assessment
+      parameters:
+        - name: assessment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Grade-sheet export queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/reports/exports/{export}:
+    get:
+      summary: Read dashboard report export status
+      operationId: dashboardReportExportsShow
+      tags:
+        - Reporting
+      parameters:
+        - name: export
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report export status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/canvas-configs/{key}:
+    get:
+      summary: Read dashboard canvas config
+      operationId: dashboardCanvasConfigsShow
+      tags:
+        - Settings
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard canvas config or empty state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    put:
+      summary: Save dashboard canvas config
+      operationId: dashboardCanvasConfigsSave
+      tags:
+        - Settings
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard canvas config saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/transport/routes:
+    post:
+      summary: Create dashboard transport route
+      operationId: dashboardTransportRoutesCreate
+      tags:
+        - Transport
+      responses:
+        '201':
+          description: Transport route created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/transport/routes/{route}:
+    patch:
+      summary: Update dashboard transport route
+      operationId: dashboardTransportRoutesUpdate
+      tags:
+        - Transport
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transport route updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      summary: Archive dashboard transport route
+      operationId: dashboardTransportRoutesArchive
+      tags:
+        - Transport
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transport route archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/transport/routes/{route}/assignments:
+    post:
+      summary: Assign student to dashboard transport route
+      operationId: dashboardTransportRouteAssignmentsCreate
+      tags:
+        - Transport
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Route assignment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/transport/routes/{route}/assignments/{assignment}:
+    patch:
+      summary: Update dashboard transport route assignment
+      operationId: dashboardTransportRouteAssignmentsUpdate
+      tags:
+        - Transport
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assignment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Route assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    delete:
+      summary: Archive dashboard transport route assignment
+      operationId: dashboardTransportRouteAssignmentsArchive
+      tags:
+        - Transport
+      parameters:
+        - name: route
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assignment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Route assignment archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/finance/payments/{payment}/refunds:
+    post:
+      summary: Create finance payment refund
+      operationId: dashboardFinancePaymentRefundsCreate
+      tags:
+        - Finance
+      parameters:
+        - name: payment
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Finance refund created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+  /dashboard/finance/refunds:
+    get:
+      summary: List finance refunds
+      operationId: dashboardFinanceRefundsList
+      tags:
+        - Finance
+      responses:
+        '200':
+          description: Finance refunds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password, device_id]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        device_id:
+          type: string
+        device_name:
+          type: string
+    LoginResponse:
+      type: object
+      required: [token, token_type]
+      properties:
+        token:
+          type: string
+        token_type:
+          type: string
+        expires_at:
+          type: string
+          nullable: true
+        user:
+          type: object
+        school:
+          type: object
+    SuccessEnvelope:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+  responses:
+    ValidationError:
+      description: Input validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message, code, errors]
+            properties:
+              message:
+                type: string
+              code:
+                type: string
+              errors:
+                type: object
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message, code]
+            properties:
+              message:
+                type: string
+              code:
+                type: string

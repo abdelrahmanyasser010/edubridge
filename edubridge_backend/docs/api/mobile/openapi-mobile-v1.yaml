@@ -1,0 +1,2938 @@
+openapi: 3.1.0
+info:
+  title: EduBridge Mobile API
+  version: 1.0.0
+  summary: Flutter integration contract for Parent, Teacher, Student and Transport apps
+servers:
+- url: http://alpha.edubridge.test:8000/api/v1
+  description: Local tenant example
+- url: https://{schoolSubdomain}.api.edubridge.com/api/v1
+  description: Production tenant pattern
+  variables:
+    schoolSubdomain:
+      default: alpha
+security:
+- bearerAuth: []
+tags:
+- name: Auth
+- name: Shared
+- name: Support
+- name: Parent
+- name: Payments
+- name: Wallet
+- name: Teacher
+- name: Student
+- name: Transport
+paths:
+  /school/lookup:
+    post:
+      tags:
+      - Auth
+      summary: Resolve a school from an invitation token
+      operationId: schoolLookup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - token
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Parent app login
+      operationId: parentAuthLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Teacher app login
+      operationId: teacherAuthLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /student/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Student app login
+      operationId: studentAuthLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Transport app login
+      operationId: transportAuthLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Authenticated user/school/role/permissions/device context
+      operationId: authMe
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Revoke current token
+      operationId: authLogout
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/device-sessions:
+    get:
+      tags:
+      - Auth
+      summary: List active device sessions
+      operationId: authDeviceSessions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/device-sessions/{deviceSession}/revoke:
+    post:
+      tags:
+      - Auth
+      summary: Revoke a device session
+      operationId: authRevokeDeviceSessionPost
+      parameters:
+      - name: deviceSession
+        in: path
+        required: true
+        description: deviceSession
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Auth
+      summary: Revoke a device session
+      operationId: authRevokeDeviceSessionDelete
+      parameters:
+      - name: deviceSession
+        in: path
+        required: true
+        description: deviceSession
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/device/push-token:
+    put:
+      tags:
+      - Auth
+      summary: Update FCM/APNs device push token
+      operationId: authUpdatePushToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - token
+              - platform
+              properties:
+                token:
+                  type: string
+                platform:
+                  type: string
+                  enum:
+                  - android
+                  - ios
+                  - web
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /notifications:
+    get:
+      tags:
+      - Shared
+      summary: List notifications
+      operationId: notificationsIndex
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /notifications/{delivery}/read:
+    post:
+      tags:
+      - Shared
+      summary: Mark one notification as read
+      operationId: notificationRead
+      parameters:
+      - name: delivery
+        in: path
+        required: true
+        description: delivery
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /notifications/read-all:
+    post:
+      tags:
+      - Shared
+      summary: Mark all notifications as read
+      operationId: notificationsReadAll
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /notification-preferences:
+    get:
+      tags:
+      - Shared
+      summary: Get notification preferences
+      operationId: notificationPreferencesGet
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags:
+      - Shared
+      summary: Update notification preference
+      operationId: notificationPreferencesUpdate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations:
+    get:
+      tags:
+      - Shared
+      summary: List conversations
+      operationId: conversationsIndex
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Shared
+      summary: Create conversation
+      operationId: conversationsStore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/messages:
+    get:
+      tags:
+      - Shared
+      summary: List conversation messages
+      operationId: conversationMessages
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        description: thread
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Shared
+      summary: Send conversation message (alias)
+      operationId: conversationSendAlias
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        description: thread
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/send:
+    post:
+      tags:
+      - Shared
+      summary: Send conversation message
+      operationId: conversationSend
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        description: thread
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /conversations/{thread}/read:
+    post:
+      tags:
+      - Shared
+      summary: Mark conversation read
+      operationId: conversationRead
+      parameters:
+      - name: thread
+        in: path
+        required: true
+        description: thread
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/categories:
+    get:
+      tags:
+      - Support
+      summary: List support categories
+      operationId: supportCategories
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets:
+    get:
+      tags:
+      - Support
+      summary: List current user support tickets
+      operationId: supportTickets
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Support
+      summary: Open support ticket
+      operationId: supportTicketCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportTicketCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets/{ticket}:
+    get:
+      tags:
+      - Support
+      summary: Get owned support ticket
+      operationId: supportTicketShow
+      parameters:
+      - name: ticket
+        in: path
+        required: true
+        description: ticket
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /support/tickets/{ticket}/messages:
+    post:
+      tags:
+      - Support
+      summary: Reply to owned support ticket
+      operationId: supportTicketReply
+      parameters:
+      - name: ticket
+        in: path
+        required: true
+        description: ticket
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - message
+              properties:
+                message:
+                  type: string
+                  maxLength: 5000
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students:
+    get:
+      tags:
+      - Parent
+      summary: List children linked to authenticated parent
+      operationId: parentStudents
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/profile:
+    get:
+      tags:
+      - Parent
+      summary: Get parent profile
+      operationId: parentProfile
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags:
+      - Parent
+      summary: Update allowed parent profile fields
+      operationId: parentProfileUpdate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  maxLength: 120
+                phone:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/overview:
+    get:
+      tags:
+      - Parent
+      summary: Aggregated parent home overview for a child
+      operationId: parentStudentOverview
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/attendance:
+    get:
+      tags:
+      - Parent
+      summary: Student attendance summary/history
+      operationId: parentStudentAttendance
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/medical-excuses:
+    post:
+      tags:
+      - Parent
+      summary: Create medical excuse for linked student
+      operationId: parentMedicalExcuseCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/assignments:
+    get:
+      tags:
+      - Parent
+      summary: List assignments for linked student
+      operationId: parentAssignments
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/assignments/{assignment}/submissions:
+    post:
+      tags:
+      - Parent
+      summary: Submit assignment for linked student
+      operationId: parentAssignmentSubmit
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/assignments/{assignment}/attachments/{file}/download:
+    get:
+      tags:
+      - Parent
+      summary: Download authorized assignment attachment
+      operationId: parentAssignmentAttachment
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        description: file
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/behavior-notes:
+    get:
+      tags:
+      - Parent
+      summary: List published behavior notes
+      operationId: parentBehaviorNotes
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/behavior-notes/{note}/acknowledge:
+    post:
+      tags:
+      - Parent
+      summary: Acknowledge behavior note
+      operationId: parentBehaviorAcknowledge
+      parameters:
+      - name: note
+        in: path
+        required: true
+        description: note
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/leave-permits:
+    post:
+      tags:
+      - Parent
+      summary: Create leave permit request
+      operationId: parentLeavePermitCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/summons:
+    get:
+      tags:
+      - Parent
+      summary: List parent summons for linked student
+      operationId: parentSummons
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/summons/{summons}/respond:
+    post:
+      tags:
+      - Parent
+      summary: Respond to a parent summons
+      operationId: parentSummonsRespond
+      parameters:
+      - name: summons
+        in: path
+        required: true
+        description: summons
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/recent-assessments:
+    get:
+      tags:
+      - Parent
+      summary: Recent published assessments
+      operationId: parentRecentAssessments
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/terms:
+    get:
+      tags:
+      - Parent
+      summary: List terms available for grade reports
+      operationId: parentReportTerms
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/terms/{term}:
+    get:
+      tags:
+      - Parent
+      summary: Term grade report including grade entry ids
+      operationId: parentTermReport
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: term
+        in: path
+        required: true
+        description: term
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/reports/certificate:
+    post:
+      tags:
+      - Parent
+      summary: Generate/request grade certificate
+      operationId: parentCertificate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/grade-entries/{entry}/appeals:
+    post:
+      tags:
+      - Parent
+      summary: Create grade appeal
+      operationId: parentGradeAppealCreate
+      parameters:
+      - name: entry
+        in: path
+        required: true
+        description: entry
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities:
+    get:
+      tags:
+      - Parent
+      summary: List school activities for linked student
+      operationId: parentActivities
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - upcoming
+          - past
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}:
+    get:
+      tags:
+      - Parent
+      summary: Get activity detail
+      operationId: parentActivityShow
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}/register:
+    post:
+      tags:
+      - Parent
+      summary: Register linked student in activity
+      operationId: parentActivityRegister
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/activities/{activity}/registration:
+    delete:
+      tags:
+      - Parent
+      summary: Cancel activity registration
+      operationId: parentActivityCancel
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity
+        in: path
+        required: true
+        description: activity
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/transport/live-status:
+    get:
+      tags:
+      - Parent
+      summary: Get rich live transport status
+      operationId: parentTransportLive
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/transport/opt-outs:
+    post:
+      tags:
+      - Parent
+      summary: Create transport opt-out
+      operationId: parentTransportOptOut
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/finance/summary:
+    get:
+      tags:
+      - Payments
+      summary: Finance summary for linked student
+      operationId: parentFinanceSummary
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices:
+    get:
+      tags:
+      - Payments
+      summary: List student invoices
+      operationId: parentInvoices
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - partial
+          - paid
+          - overdue
+          - cancelled
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices/{invoice}:
+    get:
+      tags:
+      - Payments
+      summary: Get student invoice
+      operationId: parentInvoiceShow
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: invoice
+        in: path
+        required: true
+        description: invoice
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/methods:
+    get:
+      tags:
+      - Payments
+      summary: List enabled payment methods
+      operationId: paymentMethods
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/invoices/{invoice}/payment-sessions:
+    post:
+      tags:
+      - Payments
+      summary: Create idempotent invoice payment session
+      operationId: invoicePaymentSessionCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: invoice
+        in: path
+        required: true
+        description: invoice
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoicePaymentSessionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/{payment}:
+    get:
+      tags:
+      - Payments
+      summary: Get owned payment session status
+      operationId: paymentShow
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        description: payment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/{payment}/receipt:
+    get:
+      tags:
+      - Payments
+      summary: Get receipt for paid payment
+      operationId: paymentReceipt
+      parameters:
+      - name: payment
+        in: path
+        required: true
+        description: payment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet:
+    get:
+      tags:
+      - Wallet
+      summary: Get student wallet
+      operationId: parentWallet
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/transactions:
+    get:
+      tags:
+      - Wallet
+      summary: List wallet transactions
+      operationId: parentWalletTransactions
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/top-up-sessions:
+    post:
+      tags:
+      - Wallet
+      summary: Create idempotent wallet top-up session
+      operationId: walletTopUpSessionCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletTopUpSessionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /parent/students/{student}/wallet/payment-token:
+    post:
+      tags:
+      - Wallet
+      summary: Issue short-lived single-use canteen QR token
+      operationId: walletPaymentTokenCreate
+      parameters:
+      - name: student
+        in: path
+        required: true
+        description: student
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                max_amount_minor:
+                  type:
+                  - integer
+                  - 'null'
+                  minimum: 1
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /webhooks/payments/{provider}:
+    post:
+      tags:
+      - Payments
+      summary: Provider payment webhook (server-to-server)
+      operationId: paymentWebhook
+      security: []
+      parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - moyasar
+          - fake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/dashboard/summary:
+    get:
+      tags:
+      - Teacher
+      summary: Teacher home summary
+      operationId: teacherDashboardSummary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes:
+    get:
+      tags:
+      - Teacher
+      summary: List current teacher allocations/classes
+      operationId: teacherClasses
+      parameters:
+      - name: academic_term_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}:
+    get:
+      tags:
+      - Teacher
+      summary: Class detail owned by teacher
+      operationId: teacherClassDetail
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}/students:
+    get:
+      tags:
+      - Teacher
+      summary: Students in owned class
+      operationId: teacherClassStudents
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/schedule:
+    get:
+      tags:
+      - Teacher
+      summary: Daily teaching schedule with attendance session IDs
+      operationId: teacherSchedule
+      parameters:
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/attendance/sessions/{session}/roster:
+    get:
+      tags:
+      - Teacher
+      summary: Attendance roster
+      operationId: teacherAttendanceRoster
+      parameters:
+      - name: session
+        in: path
+        required: true
+        description: session
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/attendance/sessions/{session}/draft:
+    put:
+      tags:
+      - Teacher
+      summary: Save attendance draft
+      operationId: teacherAttendanceDraft
+      parameters:
+      - name: session
+        in: path
+        required: true
+        description: session
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/attendance/sessions/{session}/submit:
+    post:
+      tags:
+      - Teacher
+      summary: Submit attendance
+      operationId: teacherAttendanceSubmit
+      parameters:
+      - name: session
+        in: path
+        required: true
+        description: session
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assignments:
+    get:
+      tags:
+      - Teacher
+      summary: List teacher assignments
+      operationId: teacherAssignments
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Teacher
+      summary: Create assignment
+      operationId: teacherAssignmentCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assignments/{assignment}:
+    patch:
+      tags:
+      - Teacher
+      summary: Update assignment
+      operationId: teacherAssignmentUpdate
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Teacher
+      summary: Archive/delete draft assignment per workflow
+      operationId: teacherAssignmentDelete
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assignments/{assignment}/publish:
+    post:
+      tags:
+      - Teacher
+      summary: Publish assignment
+      operationId: teacherAssignmentPublish
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/behavior-notes:
+    post:
+      tags:
+      - Teacher
+      summary: Create behavior note
+      operationId: teacherBehaviorCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/substitutions:
+    get:
+      tags:
+      - Teacher
+      summary: List substitutions for teacher
+      operationId: teacherSubstitutions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/substitutions/{substitution}/accept:
+    post:
+      tags:
+      - Teacher
+      summary: Accept substitution
+      operationId: teacherSubstitutionAccept
+      parameters:
+      - name: substitution
+        in: path
+        required: true
+        description: substitution
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/substitutions/{substitution}/decline:
+    post:
+      tags:
+      - Teacher
+      summary: Decline substitution
+      operationId: teacherSubstitutionDecline
+      parameters:
+      - name: substitution
+        in: path
+        required: true
+        description: substitution
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments:
+    get:
+      tags:
+      - Teacher
+      summary: List teacher assessments
+      operationId: teacherAssessments
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: allocation_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: academic_term_id
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Teacher
+      summary: Create assessment
+      operationId: teacherAssessmentCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments/{assessment}/roster:
+    get:
+      tags:
+      - Teacher
+      summary: Assessment grade roster
+      operationId: teacherAssessmentRoster
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        description: assessment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments/{assessment}/grades:
+    put:
+      tags:
+      - Teacher
+      summary: Save grade entries
+      operationId: teacherAssessmentGradesSave
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        description: assessment
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/assessments/{assessment}/submit:
+    post:
+      tags:
+      - Teacher
+      summary: Submit assessment for approval
+      operationId: teacherAssessmentSubmit
+      parameters:
+      - name: assessment
+        in: path
+        required: true
+        description: assessment
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /teacher/classes/{section}/gradebook:
+    get:
+      tags:
+      - Teacher
+      summary: Owned class gradebook
+      operationId: teacherGradebook
+      parameters:
+      - name: section
+        in: path
+        required: true
+        description: section
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /student/assignments:
+    get:
+      tags:
+      - Student
+      summary: List current student assignments
+      operationId: studentAssignments
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /student/assignments/{assignment}/submissions:
+    post:
+      tags:
+      - Student
+      summary: Submit own assignment
+      operationId: studentAssignmentSubmit
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /student/assignments/{assignment}/attachments/{file}/download:
+    get:
+      tags:
+      - Student
+      summary: Download assignment attachment
+      operationId: studentAssignmentAttachment
+      parameters:
+      - name: assignment
+        in: path
+        required: true
+        description: assignment
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        description: file
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/routes:
+    post:
+      tags:
+      - Transport
+      summary: Create transport route
+      operationId: transportRouteCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/routes/{route}/assignments:
+    post:
+      tags:
+      - Transport
+      summary: Assign student to route
+      operationId: transportAssignmentCreate
+      parameters:
+      - name: route
+        in: path
+        required: true
+        description: route
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/routes/{route}/trips:
+    post:
+      tags:
+      - Transport
+      summary: Start/create trip
+      operationId: transportTripCreate
+      parameters:
+      - name: route
+        in: path
+        required: true
+        description: route
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/trips/{trip}/tracking-events:
+    post:
+      tags:
+      - Transport
+      summary: Ingest GPS tracking event
+      operationId: transportTrackingEvent
+      parameters:
+      - name: trip
+        in: path
+        required: true
+        description: trip
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /transport/routes/{route}/alerts:
+    post:
+      tags:
+      - Transport
+      summary: Send route alert
+      operationId: transportAlert
+      parameters:
+      - name: route
+        in: path
+        required: true
+        description: route
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  responses:
+    Unauthenticated:
+      description: Unauthenticated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    SuccessEnvelope:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data: {}
+        meta:
+          type: object
+          required:
+          - request_id
+          properties:
+            request_id:
+              type: string
+    ErrorEnvelope:
+      type: object
+      required:
+      - message
+      - code
+      - errors
+      - meta
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      - device_id
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        device_id:
+          type: string
+          maxLength: 128
+          description: Stable installation UUID
+        device_name:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+    SupportTicketCreate:
+      type: object
+      required:
+      - category_key
+      - subject
+      - message
+      properties:
+        category_key:
+          type: string
+          enum:
+          - general
+          - technical
+          - academic
+          - attendance
+          - transport
+          - finance
+        subject:
+          type: string
+          maxLength: 180
+        message:
+          type: string
+          maxLength: 5000
+    InvoicePaymentSessionCreate:
+      type: object
+      required:
+      - method
+      - idempotency_key
+      properties:
+        method:
+          type: string
+          enum:
+          - mada
+          - apple_pay
+          - visa
+          - mastercard
+          - stc_pay
+          - samsung_pay
+        idempotency_key:
+          type: string
+          format: uuid
+      description: Method must also be enabled by server configuration. Amount is derived from invoice.
+    WalletTopUpSessionCreate:
+      type: object
+      required:
+      - amount_minor
+      - payment_method
+      - idempotency_key
+      properties:
+        amount_minor:
+          type: integer
+          minimum: 1
+        payment_method:
+          type: string
+          enum:
+          - mada
+          - apple_pay
+          - visa
+          - mastercard
+          - stc_pay
+          - samsung_pay
+        idempotency_key:
+          type: string
+          format: uuid
