@@ -57,18 +57,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Floating expand button when sidebar is collapsed */}
-      {sidebarCollapsed && (
-        <button
-          onClick={toggleSidebar}
-          className="sidebar-floating-toggle"
-          title="إظهار القائمة الجانبية"
-          aria-label="إظهار القائمة الجانبية"
-        >
-          <ChevronLeft size={20} />
-        </button>
-      )}
-
       {/* Backdrop overlay for mobile */}
       {mobileMenuOpen && (
         <div
@@ -82,8 +70,18 @@ export default function Sidebar() {
       )}
 
       <aside className={`sidebar ${mobileMenuOpen ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
+        {/* Desktop Edge Toggle Button (Circular Badge on Sidebar Border) */}
+        <button
+          onClick={toggleSidebar}
+          className="sidebar-edge-toggle"
+          title={sidebarCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
+          aria-label={sidebarCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
+        >
+          {sidebarCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+        </button>
+
         {/* Logo */}
-        <div className="sidebar-logo" style={{ justifyContent: "space-between" }}>
+        <div className="sidebar-logo">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Image
               src="/logo_new.png"
@@ -97,15 +95,6 @@ export default function Sidebar() {
               <span>لوحة الإدارة المدرسية</span>
             </div>
           </div>
-          {/* Desktop collapse button */}
-          <button
-            onClick={toggleSidebar}
-            className="sidebar-collapse-btn"
-            title="إخفاء القائمة الجانبية لتوسيع المساحة"
-            aria-label="إخفاء القائمة الجانبية"
-          >
-            <ChevronRight size={18} />
-          </button>
           {/* Close button for mobile */}
           <button
             onClick={() => setMobileMenuOpen(false)}
@@ -130,6 +119,7 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                title={item.label}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`nav-item${isActive ? " active" : ""}`}
                 style={isSpecial && !isActive ? {
@@ -140,13 +130,15 @@ export default function Sidebar() {
                 } : undefined}
               >
                 <Icon style={isSpecial ? { color: "#2563EB" } : undefined} />
-                <span style={{ flex: 1, color: isSpecial && !isActive ? "#2563EB" : undefined, fontWeight: isSpecial ? 800 : undefined }}>{item.label}</span>
+                <span className="nav-item-label" style={{ flex: 1, color: isSpecial && !isActive ? "#2563EB" : undefined, fontWeight: isSpecial ? 800 : undefined }}>
+                  {item.label}
+                </span>
                 {(item as { badge?: number }).badge && (item as { badge?: number }).badge! > 0 ? (
                   <span className={`nav-badge${(item as { badgeGreen?: boolean }).badgeGreen ? " green" : ""}`}>
                     {(item as { badge?: number }).badge}
                   </span>
                 ) : null}
-                {isActive && <ChevronRight size={13} style={{ color: "var(--primary)", opacity: 0.5 }} />}
+                {isActive && <ChevronRight size={13} className="nav-active-arrow" style={{ color: "var(--primary)", opacity: 0.5 }} />}
               </Link>
             );
           })}
@@ -154,7 +146,7 @@ export default function Sidebar() {
 
         {/* Footer — Dynamic Role Badge from RBAC Context */}
         <div className="sidebar-footer">
-          <div className="sidebar-role-badge">
+          <div className="sidebar-role-badge" title={`${currentUser?.name || "مستخدم EduBridge"} (${currentRole.label})`}>
             <div className="role-avatar">{currentRole.label.charAt(0)}</div>
             <div className="role-info">
               <div className="role-name">{currentUser?.name || "مستخدم EduBridge"}</div>
@@ -165,11 +157,12 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => void handleLogout()}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm sidebar-logout-btn"
+            title="تسجيل الخروج"
             style={{ width: "100%", justifyContent: "center", gap: 6 }}
           >
-            <LogOut size={14} />
-            تسجيل الخروج
+            <LogOut size={15} />
+            <span className="logout-text">تسجيل الخروج</span>
           </button>
         </div>
       </aside>
