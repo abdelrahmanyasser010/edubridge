@@ -459,9 +459,12 @@ interface DashboardContextType {
   requestGradeSheetExport: (assessmentId: string) => Promise<DashboardReportExport | null>;
   refreshReportExport: (exportId: string) => Promise<DashboardReportExport | null>;
 
-  // Responsive Mobile Menu
+  // Responsive Mobile Menu & Sidebar Collapse
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  toggleSidebar: () => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -612,6 +615,36 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [permissionMatrix, setPermissionMatrix] = useState<PermissionMatrix>(initialPermissionMatrix);
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>(initialAdminAccounts);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("edubridge_sidebar_collapsed");
+      if (stored === "true") {
+        setSidebarCollapsed(true);
+        if (typeof document !== "undefined") {
+          document.body.classList.add("sidebar-collapsed");
+        }
+      }
+    } catch {}
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("edubridge_sidebar_collapsed", String(next));
+        if (typeof document !== "undefined") {
+          if (next) {
+            document.body.classList.add("sidebar-collapsed");
+          } else {
+            document.body.classList.remove("sidebar-collapsed");
+          }
+        }
+      } catch {}
+      return next;
+    });
+  }, []);
   const [currentUser, setCurrentUser] = useState<DashboardUser | null>(() => getStoredDashboardAuth().user);
   const [currentSchool, setCurrentSchool] = useState<DashboardSchool | null>(() => getStoredDashboardAuth().school);
   const [backendPermissions, setBackendPermissions] = useState<string[]>([]);
@@ -2370,7 +2403,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         approveBehaviorNote, attachRecommendation, resolveBehaviorNote, approveMedicalExcuse,
         rejectMedicalExcuse, issueParentSummons, approveLeavePermit, sendBroadcast, scheduleBroadcast, approveSectionGrades,
         updateAssessmentGradesFromDashboard, requestGradeSheetExport, refreshReportExport,
-        mobileMenuOpen, setMobileMenuOpen
+        mobileMenuOpen, setMobileMenuOpen,
+        sidebarCollapsed, setSidebarCollapsed, toggleSidebar
       }}
     >
       {children}

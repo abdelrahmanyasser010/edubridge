@@ -93,43 +93,10 @@ export default function AnalyticsPage() {
         />
         <main className="page-body">
 
-          {/* Educational Health Banner */}
-          <div style={{
-            background: "linear-gradient(135deg, #123C56 0%, #176B9A 60%, #1e83bb 100%)",
-            borderRadius: "var(--radius-xl)", padding: "26px 30px", color: "white",
-            marginBottom: 24, boxShadow: "0 12px 32px rgba(23,107,154,0.25)",
-            position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between",
-            flexWrap: "wrap", gap: 20,
-          }}>
-            <div style={{ position: "absolute", top: -30, left: -30, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
-            
-            <div style={{ zIndex: 1, maxWidth: 540 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <div style={{ background: "rgba(255,255,255,0.18)", padding: "6px 12px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 800 }}>
-                  <TrendingUp size={14} color="#FDE047" /> مؤشرات الأداء والانتظام المدرسي
-                </div>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>تحديث آلي مباشر متصل برصد المعلمين</span>
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6 }}>المؤشر العام لانتظام البيئة المدرسية والتحصيل</div>
-              <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>
-                يقوم النظام بالربط التلقائي بين عناصر الانتظام الأساسية (التقييمات، الالتزام بالحضور الصباحي، السلوك في الفصول، والتواصل مع أولياء الأمور) لتقييم استقرار المدرسة والاكتشاف المبكر لحالات التعثر.
-              </div>
-            </div>
-
-            <div style={{
-              background: "rgba(255,255,255,0.12)", backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.2)", borderRadius: "var(--radius)",
-              padding: "18px 26px", textAlign: "center", zIndex: 1, minWidth: 200,
-            }}>
-              <div style={{ fontSize: 40, fontWeight: 900, color: "#FDE047", letterSpacing: -1 }}>{healthIndex}%</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginTop: 2 }}>الحالة العامّة: مستقرة ومتميزة ✓</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 6 }}>تحديث دوري متزامن</div>
-            </div>
-          </div>
-
           {/* Quick Metrics Grid */}
-          <div className="kpi-grid" style={{ marginBottom: 24 }}>
+          <div className="kpi-grid" style={{ marginBottom: 20 }}>
             {[
+              { label: "مؤشر الانتظام العام", value: `${healthIndex}%`, icon: <TrendingUp size={22} />, bg: "#F0FDF4", color: "#16A34A", sub: "استقرار البيئة والتحصيل" },
               { label: "إجمالي الطلاب", value: `${dashboardSummary?.students ?? students.length} طالب`, icon: <Users size={22} />, bg: "#EFF6FF", color: "#1D4ED8", sub: "مسجلون في الفصول الدراسية" },
               { label: "نسبة الحضور اليوم", value: `${Math.round(dashboardSummary?.attendance_today?.rate ?? Number(avgAttendance))}%`, icon: <ShieldCheck size={22} />, bg: "#F0FDF4", color: "#15803D", sub: "معدل الحضور المرصود اليوم" },
               { label: "حالات الإنذار والمتابعة", value: `${riskStudents.length} طلاب`, icon: <AlertTriangle size={22} />, bg: "#FEF2F2", color: "#DC2626", sub: "طلاب بحاجة لمتابعة إرشادية" },

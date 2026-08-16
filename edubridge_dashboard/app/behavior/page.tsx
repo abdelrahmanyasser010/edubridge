@@ -32,26 +32,6 @@ export default function BehaviorPage() {
         <Header title="السلوك والمواظبة" subtitle="مراجعة الملاحظات السلوكية المرفوعة من المعلمين واعتمادها لإشعار ولي الأمر" />
         <main className="page-body">
 
-          {/* Severity explanation / alert */}
-          <div style={{
-            background: "var(--bg-surface)", border: "1px solid var(--border)",
-            borderRadius: "var(--radius)", padding: "16px 20px", marginBottom: 20,
-            display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap",
-          }}>
-            <Shield size={24} color="var(--primary)" style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 13, color: "var(--text-dark)", marginBottom: 4 }}>
-                نظام حوكمة لائحة السلوك والمواظبة (التدخل التربوي)
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-light)", lineHeight: 1.6 }}>
-                الملاحظات ذات الخطورة <strong>العالية</strong> تستوجب إصدار استدعاء لولي الأمر أو إرفاق خطة علاجية من المشرف التربوي قبل اعتمادها وإرسالها لتطبيق ولي الأمر.
-              </div>
-            </div>
-            <a href="/operations" className="btn btn-primary btn-sm">
-              الانتقال للطلبات والاستدعاءات
-            </a>
-          </div>
-
           {/* Filter Tabs */}
           <div style={{ display: "flex", gap: 8, marginBottom: 18, borderBottom: "1px solid var(--border)", paddingBottom: 12, flexWrap: "wrap" }}>
             <button

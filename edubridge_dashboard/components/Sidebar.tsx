@@ -6,14 +6,27 @@ import Image from "next/image";
 import {
   LayoutDashboard, Users, GraduationCap, Calendar, Shield,
   ClipboardCheck, BookOpen, Bus, MessageSquare, BarChart3,
-  ChevronRight, LogOut, FileCheck, Settings, Sparkles, X, Network, Wallet,
+  ChevronRight, LogOut, FileCheck, Settings, Sparkles, X, Network, Wallet, PanelRightClose,
 } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { behaviorNotes, medicalExcuses, leavePermits, currentRole, currentUser, logoutDashboard, hasApiPermission, dashboardSummary, mobileMenuOpen, setMobileMenuOpen } = useDashboard();
+  const {
+    behaviorNotes,
+    medicalExcuses,
+    leavePermits,
+    currentRole,
+    currentUser,
+    logoutDashboard,
+    hasApiPermission,
+    dashboardSummary,
+    mobileMenuOpen,
+    setMobileMenuOpen,
+    sidebarCollapsed,
+    toggleSidebar,
+  } = useDashboard();
 
   const pendingNotes = behaviorNotes.filter(n => n.statusLabel === "مفتوحة").length;
   const pendingExcuses = medicalExcuses.filter(e => e.status === "pending").length;
@@ -56,7 +69,7 @@ export default function Sidebar() {
         />
       )}
 
-      <aside className={`sidebar ${mobileMenuOpen ? "open" : ""}`}>
+      <aside className={`sidebar ${mobileMenuOpen ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
         {/* Logo */}
         <div className="sidebar-logo" style={{ justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -72,6 +85,15 @@ export default function Sidebar() {
               <span>لوحة الإدارة المدرسية</span>
             </div>
           </div>
+          {/* Desktop collapse button */}
+          <button
+            onClick={toggleSidebar}
+            className="glass-sidebar-toggle"
+            style={{ padding: "5px 7px" }}
+            title="إخفاء القائمة الجانبية لتوسيع المساحة"
+          >
+            <PanelRightClose size={15} />
+          </button>
           {/* Close button for mobile */}
           <button
             onClick={() => setMobileMenuOpen(false)}

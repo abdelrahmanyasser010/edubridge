@@ -77,6 +77,11 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.expanded {
+  margin-right: 0 !important;
 }
 
 .page-body {
@@ -97,6 +102,41 @@ body {
   flex-direction: column;
   z-index: 100;
   overflow-y: auto;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed,
+body.sidebar-collapsed .sidebar {
+  transform: translateX(100%);
+}
+
+body.sidebar-collapsed .main-content {
+  margin-right: 0 !important;
+}
+
+/* ── Glassy Sidebar Toggle ──────────────────────────────────── */
+.glass-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: var(--radius);
+  background: rgba(23, 107, 154, 0.07);
+  border: 1px solid rgba(23, 107, 154, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-sidebar-toggle:hover {
+  background: rgba(23, 107, 154, 0.14);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(23, 107, 154, 0.12);
 }
 
 .sidebar-logo {

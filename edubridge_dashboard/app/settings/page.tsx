@@ -204,38 +204,17 @@ export default function SettingsPage() {
       <Sidebar />
       <div className="main-content">
         <Header
-          title="إعدادات النظام وإدارة صلاحيات الوصول (RBAC)"
-          subtitle="تخصيص الأدوار، تقييد صلاحيات المشرفين، ومزامنة إعدادات الربط مع تطبيقات أولياء الأمور والمعلمين"
+          title="إعدادات النظام والصلاحيات"
+          subtitle="تخصيص صلاحيات المشرفين والوكلاء، إدارة الحسابات، وإعدادات الربط المباشر"
         />
         <main className="page-body">
-
-          {/* Banner Explanation */}
-          <div style={{
-            background: "var(--bg-surface)", border: "1px solid var(--border)",
-            borderRadius: "var(--radius)", padding: "16px 20px", marginBottom: 20,
-            display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap",
-          }}>
-            <Shield size={28} color="var(--primary)" style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--text-dark)", marginBottom: 4 }}>
-                نظام حوكمة الصلاحيات والأدوار المتقدم (Role-Based Access Control — RBAC)
-              </div>
-              <div style={{ fontSize: 12.5, color: "var(--text-light)", lineHeight: 1.6 }}>
-                يقوم <strong>مدير المدرسة</strong> بإنشاء حسابات مخصصة لوكلاء المدرسة والمشرفين ومنحهم صلاحيات دقيقة. أي تغيير في المصفوفة أدناه يُحفظ فوراً في الخادم وينعكس على العمليات المتاحة للمستخدم.
-              </div>
-            </div>
-            <div style={{ background: "var(--primary-50)", padding: "8px 14px", borderRadius: "var(--radius)", textAlign: "center" }}>
-              <div style={{ fontSize: 11, color: "var(--primary)", fontWeight: 600 }}>الدور النشط الآن في الجلسة:</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--primary)" }}>{currentRole.label}</div>
-            </div>
-          </div>
 
           {/* Navigation Tabs */}
           <div style={{ display: "flex", gap: 10, marginBottom: 20, borderBottom: "1px solid var(--border)", paddingBottom: 12, flexWrap: "wrap" }}>
             {[
-              { id: "rbac", label: "🛡️ مصفوفة الصلاحيات وتخصيص الأدوار", icon: Shield },
-              { id: "accounts", label: "👥 إدارة الحسابات والكوادر الإدارية", icon: Users },
-              { id: "api", label: "🔌 بوابات الربط وإعدادات المدرسة", icon: Globe },
+              { id: "rbac", label: "مصفوفة الصلاحيات وتخصيص الأدوار", icon: Shield },
+              { id: "accounts", label: "إدارة الحسابات والكوادر الإدارية", icon: Users },
+              { id: "api", label: "بوابات الربط وإعدادات المدرسة", icon: Globe },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -283,7 +262,7 @@ export default function SettingsPage() {
                           fontWeight: isSelected ? 800 : 600,
                         }}
                       >
-                        <Key size={13} /> {r.label}
+                        {r.label}
                       </button>
                     );
                   })}
