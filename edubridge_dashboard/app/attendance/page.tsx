@@ -185,18 +185,10 @@ export default function AttendancePage() {
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   <input
                     type="date"
+                    className="form-input"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    style={{
-                      height: 32,
-                      border: "1px solid var(--border)",
-                      borderRadius: "var(--radius)",
-                      padding: "0 8px",
-                      fontSize: 12,
-                      fontFamily: "Cairo, sans-serif",
-                      background: "var(--bg-page)",
-                      color: "var(--text-dark)",
-                    }}
+                    style={{ height: 34, width: "auto", minWidth: 150, fontSize: 12 }}
                   />
                   <button onClick={handleRefresh} className="btn btn-ghost btn-sm" title="تحديث الكشف">
                     <RefreshCw size={14} className={isLoadingSection ? "spin" : ""} />

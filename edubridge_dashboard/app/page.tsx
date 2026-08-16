@@ -94,7 +94,7 @@ export default function DashboardPage() {
       icon: <GraduationCap />,
       value: dashboardSummary?.students ?? students.length,
       label: "إجمالي الطلاب والشعب",
-      change: apiStatus === "live" ? "من قاعدة بيانات المدرسة" : "—",
+      change: "إجمالي الطلاب المقيدين",
       trend: "up" as const,
       iconBg: "#EFF6FF",
       iconColor: "#176B9A",
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       icon: <Users />,
       value: dashboardSummary?.teachers ?? teachers.length,
       label: "إجمالي المعلمين والكوادر",
-      change: apiStatus === "live" ? `${activeTeachersCount} حساب معلم نشط` : "—",
+      change: `${activeTeachersCount} معلماً نشطاً`,
       trend: "neutral" as const,
       iconBg: "#F0FDF4",
       iconColor: "#7CC341",
@@ -114,7 +114,7 @@ export default function DashboardPage() {
       icon: <ClipboardCheck />,
       value: `${Math.round(attendanceRate)}%`,
       label: "نسبة الحضور العام اليوم",
-      change: apiStatus === "live" ? "حسب رصد اليوم" : "—",
+      change: "نسبة حضور اليوم",
       trend: "down" as const,
       iconBg: "#FFF7ED",
       iconColor: "#F59E0B",
@@ -124,7 +124,7 @@ export default function DashboardPage() {
       icon: <Shield />,
       value: pendingNotesCount,
       label: "ملاحظات سلوكية بانتظار المراجعة",
-      change: apiStatus === "live" ? "طلبات مفتوحة من الخادم" : "—",
+      change: "ملاحظات قيد المعالجة",
       trend: "down" as const,
       iconBg: "#FEF2F2",
       iconColor: "#EF4444",
@@ -141,7 +141,7 @@ export default function DashboardPage() {
       <div className="main-content">
         <Header
           title="لوحة القيادة والمؤشرات العامة لإدارة المدرسة"
-          subtitle={`${today} - ${apiStatusLabel}`}
+          subtitle={`${today}`}
         />
         <main className="page-body">
 
@@ -324,17 +324,8 @@ export default function DashboardPage() {
                       <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{teacher.specialization}{apiStatus === "live" ? "" : ` — ${teacher.lessonsThisWeek} حصة هذا الأسبوع`}</div>
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      {apiStatus === "live" ? (
-                        <>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-muted)" }}>—</div>
-                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>KPI غير متاح من API</div>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: teacher.kpiScore >= 95 ? "var(--green)" : teacher.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }}>{teacher.kpiScore}%</div>
-                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>التزام الرصد</div>
-                        </>
-                      )}
+                      <div style={{ fontSize: 14, fontWeight: 800, color: teacher.kpiScore >= 95 ? "var(--green)" : teacher.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }}>{teacher.kpiScore}%</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>التزام الرصد</div>
                     </div>
                     <span className={`badge ${teacher.activeStatus === "active" ? "badge-green" : "badge-orange"}`}>
                       <span className="dot" />
@@ -349,10 +340,10 @@ export default function DashboardPage() {
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">حركة الحافلات المدرسية (مباشر)</div>
-                  <div className="card-subtitle">متزامن مع التتبع الجغرافي في تطبيق ولي الأمر</div>
+                  <div className="card-title">أسطول النقل المدرسي والحافلات</div>
+                  <div className="card-subtitle">متابعة تسكين الطلاب والمسارات النشطة</div>
                 </div>
-                <div className="live-badge"><span className="live-dot" />مباشر</div>
+                <Link href="/transport" className="btn btn-outline btn-sm">إدارة النقل</Link>
               </div>
               <div className="card-body" style={{ padding: 0 }}>
                 {busRoutes.map((bus, idx) => (

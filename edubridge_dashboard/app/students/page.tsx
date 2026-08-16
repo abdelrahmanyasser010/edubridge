@@ -51,26 +51,19 @@ export default function StudentsPage() {
                 <div style={{ position: "relative", flex: 1 }}>
                   <input
                     type="text"
+                    className="form-input"
                     placeholder="ابحث باسم الطالب، الرقم المدرسي، أو ولي الأمر..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                      width: "100%", height: 40, border: "1px solid var(--border)",
-                      borderRadius: "var(--radius)", padding: "0 12px 0 36px",
-                      fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                      background: "var(--bg-page)", color: "var(--text-dark)",
-                    }}
+                    style={{ paddingRight: 36 }}
                   />
-                  <Search size={16} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: 12 }} />
+                  <Search size={16} color="var(--text-muted)" style={{ position: "absolute", right: 12, top: 13 }} />
                 </div>
                 <select
+                  className="form-select"
                   value={riskFilter}
                   onChange={(e) => setRiskFilter(e.target.value)}
-                  style={{
-                    height: 40, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                    padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                    background: "var(--bg-page)", color: "var(--text-dark)", cursor: "pointer",
-                  }}
+                  style={{ width: "auto", minWidth: 190 }}
                 >
                   <option value="all">جميع مستويات المتابعة</option>
                   <option value="high">خطر مرتفع (إنذار مبكر)</option>

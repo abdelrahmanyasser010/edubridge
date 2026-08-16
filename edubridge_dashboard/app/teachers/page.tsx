@@ -25,7 +25,7 @@ export default function TeachersPage() {
     <div className="dashboard-shell">
       <Sidebar />
       <div className="main-content">
-        <Header title="شؤون الكوادر والأنصِبة الأكاديمية المتقدمة" subtitle="إدارة أعضاء هيئة التدريس، متابعة مؤشرات الأداء (KPIs)، وإسناد تغطية حصص الاحتياط الفورية" />
+        <Header title="شؤون المعلمين والأنصبة التدريسية" subtitle="إدارة أعضاء هيئة التدريس، متابعة التخصصات والأنصبة الأسبوعية، وإسناد حصص الانتظار" />
         <main className="page-body">
 
           {/* Controls Bar */}
@@ -35,26 +35,19 @@ export default function TeachersPage() {
                 <div style={{ position: "relative", flex: 1 }}>
                   <input
                     type="text"
+                    className="form-input"
                     placeholder="ابحث باسم المعلم، التخصص الأكاديمي، أو البريد الإلكتروني..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                      width: "100%", height: 40, border: "1px solid var(--border)",
-                      borderRadius: "var(--radius)", padding: "0 12px 0 36px",
-                      fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                      background: "var(--bg-page)", color: "var(--text-dark)",
-                    }}
+                    style={{ paddingRight: 36 }}
                   />
-                  <Search size={16} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: 12 }} />
+                  <Search size={16} color="var(--text-muted)" style={{ position: "absolute", right: 12, top: 13 }} />
                 </div>
                 <select
+                  className="form-select"
                   value={specFilter}
                   onChange={(e) => setSpecFilter(e.target.value)}
-                  style={{
-                    height: 40, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                    padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                    background: "var(--bg-page)", color: "var(--text-dark)", cursor: "pointer",
-                  }}
+                  style={{ width: "auto", minWidth: 180 }}
                 >
                   <option value="all">جميع التخصصات</option>
                   <option value="الرياضيات">الرياضيات</option>
@@ -64,7 +57,7 @@ export default function TeachersPage() {
                 </select>
               </div>
               <button onClick={() => setModalType("add_teacher")} className="btn btn-primary">
-                <Plus size={16} /> إضافة كادر تعليمي وتعيين التخصص
+                <Plus size={16} /> إضافة معلم جديد
               </button>
             </div>
           </div>
@@ -73,8 +66,8 @@ export default function TeachersPage() {
           <div className="card">
             <div className="card-header">
               <div>
-                <div className="card-title">دليل الكوادر التعليمية ومؤشرات الالتزام</div>
-                <div className="card-subtitle">يتم رصد الحضور وإرسال الواجبات والملاحظات من تطبيق المعلم مباشرة ({filteredTeachers.length} معلم)</div>
+                <div className="card-title">دليل المعلمين والأنصبة</div>
+                <div className="card-subtitle">متابعة جاهزية الكادر التعليمي والحالة الوظيفية ({filteredTeachers.length} معلم)</div>
               </div>
             </div>
             <div className="data-table-wrap">
@@ -108,19 +101,15 @@ export default function TeachersPage() {
                       </td>
                       <td><span className="badge badge-gray">{t.specialization}</span></td>
                       <td>
-                        {apiStatus === "live" ? <span style={{ color: "var(--text-muted)" }}>—</span> : <span style={{ fontWeight: 700, fontSize: 13 }}>{t.lessonsThisWeek} حصة / أسبوع</span>}
+                        {t.lessonsThisWeek > 0 ? <span style={{ fontWeight: 700, fontSize: 13 }}>{t.lessonsThisWeek} حصة / أسبوع</span> : <span style={{ color: "var(--text-muted)" }}>—</span>}
                       </td>
                       <td>
-                        {apiStatus === "live" ? (
-                          <span className="badge badge-gray">KPI غير متاح من API</span>
-                        ) : (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div className="progress-bar" style={{ width: 50 }}>
-                              <div className="progress-fill" style={{ width: `${t.kpiScore}%`, background: t.kpiScore >= 95 ? "var(--green)" : t.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }} />
-                            </div>
-                            <span style={{ fontWeight: 800, color: t.kpiScore >= 95 ? "var(--green)" : t.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }}>{t.kpiScore}%</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div className="progress-bar" style={{ width: 50 }}>
+                            <div className="progress-fill" style={{ width: `${t.kpiScore}%`, background: t.kpiScore >= 95 ? "var(--green)" : t.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }} />
                           </div>
-                        )}
+                          <span style={{ fontWeight: 800, color: t.kpiScore >= 95 ? "var(--green)" : t.kpiScore >= 85 ? "var(--warning)" : "var(--danger)" }}>{t.kpiScore}%</span>
+                        </div>
                       </td>
                       <td>
                         <span className={`badge ${t.activeStatus === "active" ? "badge-green" : "badge-orange"}`}>

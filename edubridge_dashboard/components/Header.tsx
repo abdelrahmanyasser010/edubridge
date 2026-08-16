@@ -99,8 +99,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
     }
 
     showToast(
-      "Dashboard notifications",
-      firstUnread?.notification?.title ?? `Unread notifications: ${unreadNotifications}`,
+      "الإشعارات المدرسية",
+      firstUnread?.notification?.title ?? `يوجد لديك ${unreadNotifications} إشعارات غير مقروءة.`,
       "info",
     );
   };

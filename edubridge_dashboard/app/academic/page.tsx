@@ -8,38 +8,53 @@ import { useDashboard } from "@/context/DashboardContext";
 import { Plus, BookOpen, Layers, CheckCircle } from "lucide-react";
 
 export default function AcademicPage() {
-  const { sections, subjects, addAcademicSection, addAcademicSubject } = useDashboard();
+  const { sections, subjects, addAcademicSection, addAcademicSubject, showToast } = useDashboard();
 
-  const handleAddSection = () => {
+  const [showSectionModal, setShowSectionModal] = useState(false);
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+
+  const [sectionName, setSectionName] = useState("");
+  const [sectionCode, setSectionCode] = useState("");
+  const [sectionCapacity, setSectionCapacity] = useState("30");
+
+  const [subjectName, setSubjectName] = useState("");
+  const [subjectCode, setSubjectCode] = useState("");
+  const [subjectPeriods, setSubjectPeriods] = useState("4");
+
+  const handleCreateSection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sectionName.trim()) return;
     const gradeLevelId = sections.find((section) => section.gradeLevelId)?.gradeLevelId;
-    const name = window.prompt("اسم الشعبة الجديدة", "شعبة جديدة");
-    if (!name?.trim()) return;
-
-    const code = window.prompt("كود/رقم القاعة", `SEC-${Date.now().toString(36).toUpperCase()}`);
-    if (!code?.trim()) return;
-
-    addAcademicSection(name.trim(), code.trim(), gradeLevelId, 30);
+    const code = sectionCode.trim() || `SEC-${Date.now().toString(36).toUpperCase()}`;
+    addAcademicSection(sectionName.trim(), code, gradeLevelId, Number(sectionCapacity) || 30);
+    showToast("تمت الإضافة", `تمت إضافة الشعبة ${sectionName} بنجاح.`, "success");
+    setSectionName("");
+    setSectionCode("");
+    setSectionCapacity("30");
+    setShowSectionModal(false);
   };
 
-  const handleAddSubject = () => {
-    const name = window.prompt("اسم المادة الجديدة", "مادة جديدة");
-    if (!name?.trim()) return;
-
-    const code = window.prompt("كود المادة", `SUB-${Date.now().toString(36).toUpperCase()}`);
-    if (!code?.trim()) return;
-
+  const handleCreateSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subjectName.trim()) return;
+    const code = subjectCode.trim() || `SUB-${Date.now().toString(36).toUpperCase()}`;
     addAcademicSubject(
-      name.trim(),
-      code.trim(),
+      subjectName.trim(),
+      code,
       Array.from(new Set(sections.map((section) => section.gradeLevelId).filter(Boolean))) as string[],
     );
+    showToast("تمت الإضافة", `تمت إضافة المادة ${subjectName} بنجاح.`, "success");
+    setSubjectName("");
+    setSubjectCode("");
+    setSubjectPeriods("4");
+    setShowSubjectModal(false);
   };
 
   return (
     <div className="dashboard-shell">
       <Sidebar />
       <div className="main-content">
-        <Header title="البنية الأكاديمية للمدرسة وتوزيع الفصول" subtitle="إدارة الشعب، تخصيص القاعات، وهيكلة المقررات الدراسية المعتمدة في المنهج" />
+        <Header title="الفصول والمواد الدراسية" subtitle="إدارة الفصول والشعب، وتحديد الطاقة الاستيعابية وهيكلة المقررات المعتمدة" />
         <main className="page-body">
 
           <div className="grid-2" style={{ marginBottom: 20 }}>
@@ -48,9 +63,9 @@ export default function AcademicPage() {
               <div className="card-header">
                 <div>
                   <div className="card-title">الفصول والشعب الدراسية</div>
-                  <div className="card-subtitle">{sections.length} شعب مسجّلة ونشطة في الحرم المدرسي</div>
+                  <div className="card-subtitle">{sections.length} شعب مسجّلة ونشطة في المدرسة</div>
                 </div>
-                <button onClick={handleAddSection} className="btn btn-primary btn-sm">
+                <button onClick={() => setShowSectionModal(true)} className="btn btn-primary btn-sm">
                   <Plus size={14} /> إضافة شعبة جديدة
                 </button>
               </div>
@@ -89,9 +104,9 @@ export default function AcademicPage() {
               <div className="card-header">
                 <div>
                   <div className="card-title">دليل المقررات والمواد التعليمية</div>
-                  <div className="card-subtitle">{subjects.length} مقررات معتمدة في الجدول الأسبوعي</div>
+                  <div className="card-subtitle">{subjects.length} مقررات معتمدة في الخطة الدراسية</div>
                 </div>
-                <button onClick={handleAddSubject} className="btn btn-primary btn-sm">
+                <button onClick={() => setShowSubjectModal(true)} className="btn btn-primary btn-sm">
                   <Plus size={14} /> إضافة مادة
                 </button>
               </div>
@@ -123,6 +138,79 @@ export default function AcademicPage() {
         </main>
         <Footer />
       </div>
+
+      {/* Add Section Modal */}
+      {showSectionModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>إضافة فصل / شعبة دراسية جديدة</div>
+              <button onClick={() => setShowSectionModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)" }}>✕</button>
+            </div>
+            <form onSubmit={handleCreateSection} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="form-group">
+                <label className="form-label">اسم الشعبة الدراسية</label>
+                <input required className="form-input" placeholder="مثال: الصف الخامس / شعبة ج" value={sectionName} onChange={e => setSectionName(e.target.value)} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">رقم / رمز القاعة</label>
+                  <input className="form-input" placeholder="مثال: R-204" value={sectionCode} onChange={e => setSectionCode(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">الطاقة الاستيعابية</label>
+                  <input required type="number" min="1" className="form-input" placeholder="30" value={sectionCapacity} onChange={e => setSectionCapacity(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+                  <CheckCircle size={15} /> اعتماد الشعبة
+                </button>
+                <button type="button" onClick={() => setShowSectionModal(false)} className="btn btn-ghost">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Subject Modal */}
+      {showSubjectModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)" }}>إضافة مادة / مقرر دراسي جديد</div>
+              <button onClick={() => setShowSubjectModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)" }}>✕</button>
+            </div>
+            <form onSubmit={handleCreateSubject} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="form-group">
+                <label className="form-label">اسم المقرر الدراسي</label>
+                <input required className="form-input" placeholder="مثال: الحاسب الآلي والذكاء الاصطناعي" value={subjectName} onChange={e => setSubjectName(e.target.value)} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">رمز المادة</label>
+                  <input className="form-input" placeholder="مثال: CS-101" value={subjectCode} onChange={e => setSubjectCode(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">الحصص الأسبوعية</label>
+                  <input required type="number" min="1" className="form-input" placeholder="4" value={subjectPeriods} onChange={e => setSubjectPeriods(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+                  <CheckCircle size={15} /> اعتماد المقرر
+                </button>
+                <button type="button" onClick={() => setShowSubjectModal(false)} className="btn btn-ghost">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

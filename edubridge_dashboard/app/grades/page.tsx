@@ -195,52 +195,70 @@ export default function GradesPage() {
             <div className="card" style={{ marginBottom: 20 }}>
               <div className="card-header">
                 <div>
-                  <div className="card-title">Live assessments من الباك</div>
-                  <div className="card-subtitle">GET /dashboard/assessments + approve/publish/lock actions</div>
+                  <div className="card-title">التقييمات والاختبارات الأكاديمية المسجلة</div>
+                  <div className="card-subtitle">متابعة رصد درجات الطلاب، الاعتماد الإداري، وتصدير كشوفات الدرجات</div>
                 </div>
-                <span className="badge badge-green">{visibleAssessments.length} assessment</span>
+                <span className="badge badge-green">{visibleAssessments.length} تقييم معتمد</span>
               </div>
               <div>
-                {visibleAssessments.slice(0, 8).map((assessment, index) => (
-                  <div key={assessment.id} className="feed-item" style={{ borderBottom: index < Math.min(visibleAssessments.length, 8) - 1 ? "1px solid var(--border-light)" : "none" }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 5 }}>
-                        <strong>{assessment.title}</strong>
-                        <span className="badge badge-blue">{assessment.status}</span>
-                        <span className="badge badge-gray">{assessment.subject?.name ?? assessment.type}</span>
+                {visibleAssessments.slice(0, 8).map((assessment, index) => {
+                  const statusMap: Record<string, { label: string; cls: string }> = {
+                    draft: { label: "مسودة", cls: "badge-gray" },
+                    submitted: { label: "بانتظار الاعتماد", cls: "badge-orange" },
+                    approved: { label: "معتمد", cls: "badge-green" },
+                    published: { label: "منشور لأولياء الأمور", cls: "badge-blue" },
+                    locked: { label: "مغلق نهائياً", cls: "badge-gray" },
+                  };
+                  const statusInfo = statusMap[assessment.status ?? "draft"] ?? { label: assessment.status ?? "معتمد", cls: "badge-blue" };
+                  const entered = assessment.grade_summary?.entered_entries ?? 0;
+                  const expected = assessment.grade_summary?.expected_students ?? 0;
+                  const missing = assessment.grade_summary?.missing_scores ?? 0;
+
+                  return (
+                    <div key={assessment.id} className="feed-item" style={{ borderBottom: index < Math.min(visibleAssessments.length, 8) - 1 ? "1px solid var(--border-light)" : "none" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 5 }}>
+                          <strong style={{ fontSize: 13.5 }}>{assessment.title}</strong>
+                          <span className={`badge ${statusInfo.cls}`}>{statusInfo.label}</span>
+                          <span className="badge badge-gray">{assessment.subject?.name ?? assessment.type}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-light)" }}>
+                          الشعبة: <strong>{assessment.section?.name ?? "عام"}</strong> — تم رصد: <strong>{entered}</strong> من أصل {expected} طالب {missing > 0 ? `(متبقي ${missing} لم ترصد لهم درجات)` : "✓ اكتمل الرصد"}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--text-light)" }}>
-                        {assessment.section?.name ?? "Section"} - entered {assessment.grade_summary?.entered_entries ?? 0}/{assessment.grade_summary?.expected_students ?? 0}, missing {assessment.grade_summary?.missing_scores ?? 0}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => void requestGradeSheetExport(assessment.id)}>
+                          <FileText size={14} /> تصدير PDF
+                        </button>
+                        <button className="btn btn-outline btn-sm" onClick={() => handleSaveLiveGrade(assessment.id)}>
+                          <Check size={14} /> رصد درجة
+                        </button>
+                        {assessment.available_actions?.some((action) => ["approve", "publish", "lock"].includes(action)) && (
+                          <button
+                            className="btn btn-green btn-sm"
+                            onClick={() => approveSectionGrades(`${assessment.section?.name ?? section?.name ?? "الفصل"} (${assessment.title})`)}
+                          >
+                            <CheckCircle size={14} /> اعتماد ونشر
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => void requestGradeSheetExport(assessment.id)}>
-                      <FileText size={14} /> Export
-                    </button>
-                    <button className="btn btn-outline btn-sm" onClick={() => handleSaveLiveGrade(assessment.id)}>
-                      <Check size={14} /> Save grade
-                    </button>
-                    {assessment.available_actions?.some((action) => ["approve", "publish", "lock"].includes(action)) && (
-                      <button
-                        className="btn btn-green btn-sm"
-                        onClick={() => approveSectionGrades(`${assessment.section?.name ?? section?.name ?? "الفصل"} (${assessment.title})`)}
-                      >
-                        <CheckCircle size={14} /> تنفيذ الإجراء المتاح
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {visibleReportExports.length > 0 && (
                 <div style={{ borderTop: "1px solid var(--border-light)", padding: "12px 16px", display: "grid", gap: 8 }}>
                   {visibleReportExports.map((reportExport) => (
                     <div key={reportExport.export_id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", fontSize: 12 }}>
-                      <span style={{ fontFamily: "monospace" }}>{reportExport.export_id}</span>
-                      <span className="badge badge-blue">{reportExport.status ?? "queued"}</span>
+                      <span style={{ fontFamily: "monospace", color: "var(--text-muted)" }}>{reportExport.export_id}</span>
+                      <span className="badge badge-blue">{reportExport.status === "completed" ? "جاهز للتحميل" : "قيد المعالجة"}</span>
                       {reportExport.download_url ? (
-                        <a className="btn btn-green btn-sm" href={reportExport.download_url} target="_blank" rel="noreferrer">Download</a>
+                        <a className="btn btn-green btn-sm" href={reportExport.download_url} target="_blank" rel="noreferrer">
+                          تحميل الكشف
+                        </a>
                       ) : (
                         <button className="btn btn-ghost btn-sm" onClick={() => void refreshReportExport(reportExport.export_id)}>
-                          <Clock size={14} /> Refresh
+                          <Clock size={14} /> تحديث الحالة
                         </button>
                       )}
                     </div>

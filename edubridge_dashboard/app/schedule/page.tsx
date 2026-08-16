@@ -104,14 +104,14 @@ export default function SchedulePage() {
           <div className="card">
             <div className="card-header">
               <div>
-                <div className="card-title">جدول {section?.name ?? "الشعبة"} (متزامن مع Backend)</div>
+                <div className="card-title">جدول {section?.name ?? "الشعبة"} الأسبوعي</div>
                 <div className="card-subtitle">الأسبوع الدراسي — الأحد إلى الخميس (7 حصص يومياً)</div>
               </div>
               <span className={`badge ${scheduleConflictResult?.has_conflict ? "badge-red" : "badge-green"}`}>
                 <span className="dot" />
                 {scheduleConflictResult?.has_conflict
-                  ? `${scheduleConflictResult.conflicts.length} تعارضات مباشرة`
-                  : `${liveSectionSlots.length} حصة مباشرة`}
+                  ? `${scheduleConflictResult.conflicts.length} تعارضات مكتشفة`
+                  : `الجدول معتمد وبدون تعارض`}
               </span>
             </div>
             <div className="data-table-wrap" style={{ padding: "0 0 4px" }}>
