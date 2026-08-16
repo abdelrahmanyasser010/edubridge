@@ -259,7 +259,7 @@ Artisan::command('edubridge:migrate-tenants', function (): int {
                     );
                 }
 
-                app(TenantUserRoleSynchronizer::class)->syncAllForSchool($tenant->schoolId);
+                app(TenantUserRoleSynchronizer::class)->syncAllForSchool((int) $row->school_id);
             });
 
             DB::connection('central')
