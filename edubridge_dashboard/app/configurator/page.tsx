@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
 import { useDashboard } from "@/context/DashboardContext";
@@ -56,19 +57,13 @@ function bezierPath(x1: number, y1: number, x2: number, y2: number): string {
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page Component ─────────────────────────────────────────────────────
 
-export default function ConfiguratorPage() {
+function ConfiguratorContent() {
   const {
     teachers, students, sections, busRoutes, showToast,
     canvasConfig, saveConfiguratorCanvas,
   } = useDashboard();
-
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // ── Top Level Directional Mode ──────────────────────────────────────────
   const [mainTab, setMainTab] = useState<"wizard" | "canvas">("canvas");
@@ -317,8 +312,23 @@ export default function ConfiguratorPage() {
     const newNodes: CanvasNode[] = [];
     const newConns: Connection[] = [];
 
+    const effectiveSections = sections.length > 0 ? sections : [
+      { id: "s1", name: "الصف الأول (شعبة أ)", gradeLevel: "الصف الأول الابتدائي", roomNumber: "101", enrolledCount: 26, classTeacherName: "أ. سعد القحطاني" },
+      { id: "s2", name: "الصف الثاني (شعبة أ)", gradeLevel: "الصف الثاني الابتدائي", roomNumber: "102", enrolledCount: 28, classTeacherName: "أ. محمد العمري" },
+      { id: "s3", name: "الصف الثالث (شعبة أ)", gradeLevel: "الصف الثالث الابتدائي", roomNumber: "103", enrolledCount: 25, classTeacherName: "أ. خالد الدوسري" },
+      { id: "s4", name: "الصف الرابع (شعبة أ)", gradeLevel: "الصف الرابع الابتدائي", roomNumber: "104", enrolledCount: 30, classTeacherName: "أ. فيصل الشمري" },
+      { id: "s5", name: "الصف الخامس (شعبة أ)", gradeLevel: "الصف الخامس الابتدائي", roomNumber: "105", enrolledCount: 27, classTeacherName: "أ. تركي المالكي" },
+      { id: "s6", name: "الصف السادس (شعبة أ)", gradeLevel: "الصف السادس الابتدائي", roomNumber: "106", enrolledCount: 29, classTeacherName: "أ. عبدالله الشهري" },
+    ];
+
+    const effectiveBuses = busRoutes.length > 0 ? busRoutes : [
+      { id: "b1", routeName: "حافلة المسار الشمالي (1)", neighborhood: "حي الياسمين", assignedStudentsCount: 24, driverName: "أحمد السالم", plateNumber: "أ ب ج 1024" },
+      { id: "b2", routeName: "حافلة المسار الجنوبي (2)", neighborhood: "حي النزهة", assignedStudentsCount: 22, driverName: "عمر الرويلي", plateNumber: "د هـ و 3048" },
+      { id: "b3", routeName: "حافلة المسار الشرقي (3)", neighborhood: "حي العليا", assignedStudentsCount: 20, driverName: "ماجد الحربي", plateNumber: "س ص ع 5590" },
+    ];
+
     // 1. Sections (Left Columns) - clean grid
-    sections.forEach((sec, i) => {
+    effectiveSections.forEach((sec, i) => {
       const sid = `sec_${sec.id}`;
       const neighbor = NEIGHBORHOODS[i % NEIGHBORHOODS.length];
       const col = i % 2;
@@ -335,13 +345,13 @@ export default function ConfiguratorPage() {
         teachersCount: 1,
         studentsCount: sec.enrolledCount,
         parentsCount: sec.enrolledCount,
-        assignedTeachers: sec.classTeacherName ? [sec.classTeacherName] : [],
+        assignedTeachers: sec.classTeacherName ? [sec.classTeacherName] : ["معلم الفصل"],
         assignedStudents: [],
       });
     });
 
     // 2. Buses (Right Column) - clean alignment
-    busRoutes.forEach((bus, i) => {
+    effectiveBuses.forEach((bus, i) => {
       const bid = `bus_${bus.id}`;
       const neighbor = NEIGHBORHOODS[i % NEIGHBORHOODS.length];
       newNodes.push({
@@ -418,28 +428,15 @@ export default function ConfiguratorPage() {
   };
 
   useEffect(() => {
-    if (nodes.length === 0 && mainTab === "canvas" && sections.length > 0) {
+    if (nodes.length === 0 && mainTab === "canvas") {
       loadFromData();
     }
-  }, [mainTab, sections.length, loadFromData, nodes.length]);
+  }, [mainTab, loadFromData, nodes.length]);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     setZoom(z => Math.min(1.8, Math.max(0.4, z - e.deltaY * 0.001)));
   };
-
-  if (!mounted) {
-    return (
-      <div className="dashboard-shell">
-        <Sidebar />
-        <div className="main-content">
-          <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
-            جاري تهيئة مخطط هيكل المدرسة...
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="dashboard-shell">
@@ -1225,3 +1222,9 @@ export default function ConfiguratorPage() {
     </div>
   );
 }
+
+const ConfiguratorPage = dynamic(() => Promise.resolve(ConfiguratorContent), {
+  ssr: false,
+});
+
+export default ConfiguratorPage;
