@@ -124,16 +124,6 @@ export default function Header({ title, subtitle }: HeaderProps) {
         <Menu size={20} />
       </button>
 
-      {/* Desktop Glassy Sidebar Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className="glass-sidebar-toggle"
-        title={sidebarCollapsed ? "إظهار القائمة الجانبية" : "إخفاء القائمة الجانبية (توسيع الشاشة)"}
-      >
-        {sidebarCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        <span style={{ fontSize: 11.5, display: "inline-block" }}>{sidebarCollapsed ? "إظهار القائمة" : "توسيع الشاشة"}</span>
-      </button>
-
       {/* Search */}
       <div className="header-search" ref={searchRef} style={{ position: "relative" }}>
         <Search size={18} color="var(--text-muted)" />

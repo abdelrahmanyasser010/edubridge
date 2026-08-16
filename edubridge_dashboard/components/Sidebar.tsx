@@ -6,7 +6,7 @@ import Image from "next/image";
 import {
   LayoutDashboard, Users, GraduationCap, Calendar, Shield,
   ClipboardCheck, BookOpen, Bus, MessageSquare, BarChart3,
-  ChevronRight, LogOut, FileCheck, Settings, Sparkles, X, Network, Wallet, PanelRightClose,
+  ChevronRight, ChevronLeft, LogOut, FileCheck, Settings, Sparkles, X, Network, Wallet,
 } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
 
@@ -57,6 +57,18 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* Floating expand button when sidebar is collapsed */}
+      {sidebarCollapsed && (
+        <button
+          onClick={toggleSidebar}
+          className="sidebar-floating-toggle"
+          title="إظهار القائمة الجانبية"
+          aria-label="إظهار القائمة الجانبية"
+        >
+          <ChevronLeft size={20} />
+        </button>
+      )}
+
       {/* Backdrop overlay for mobile */}
       {mobileMenuOpen && (
         <div
@@ -88,11 +100,11 @@ export default function Sidebar() {
           {/* Desktop collapse button */}
           <button
             onClick={toggleSidebar}
-            className="glass-sidebar-toggle"
-            style={{ padding: "5px 7px" }}
+            className="sidebar-collapse-btn"
             title="إخفاء القائمة الجانبية لتوسيع المساحة"
+            aria-label="إخفاء القائمة الجانبية"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={18} />
           </button>
           {/* Close button for mobile */}
           <button
