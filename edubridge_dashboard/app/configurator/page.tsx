@@ -64,6 +64,12 @@ export default function ConfiguratorPage() {
     canvasConfig, saveConfiguratorCanvas,
   } = useDashboard();
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // ── Top Level Directional Mode ──────────────────────────────────────────
   const [mainTab, setMainTab] = useState<"wizard" | "canvas">("canvas");
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
@@ -85,9 +91,11 @@ export default function ConfiguratorPage() {
   const [sortBy, setSortBy] = useState<"default" | "neighborhood" | "name">("default");
   const [activeToolboxTab, setActiveToolboxTab] = useState<"sections" | "buses">("sections");
 
+  const availableGradeLevels = Array.from(new Set(sections.map(s => s.gradeLevel).filter(Boolean))) as string[];
+
   // ── Quick Add Form State in Wizard ──────────────────────────────────────
   const [newSectionName, setNewSectionName] = useState("");
-  const [newSectionGrade, setNewSectionGrade] = useState("الصف الخامس");
+  const [newSectionGrade, setNewSectionGrade] = useState(availableGradeLevels[0] || "الصف الأول");
   const [newTeacherName, setNewTeacherName] = useState("");
   const [newTeacherSpec, setNewTeacherSpec] = useState("لغة عربية");
   const [newStudentName, setNewStudentName] = useState("");
@@ -304,16 +312,16 @@ export default function ConfiguratorPage() {
     }
   };
 
-  // ── Auto Layout: ZERO SPAGHETTI & CLEAN DOM CARDS ─────────────────────────
-  const loadFromData = () => {
+  // ── Auto Layout: Clean Structured Cards ─────────────────────────
+  const loadFromData = useCallback(() => {
     const newNodes: CanvasNode[] = [];
     const newConns: Connection[] = [];
 
     // 1. Sections (Left Columns) - clean grid
-    sections.slice(0, 6).forEach((sec, i) => {
+    sections.forEach((sec, i) => {
       const sid = `sec_${sec.id}`;
       const neighbor = NEIGHBORHOODS[i % NEIGHBORHOODS.length];
-      const col = i % 2; // Two columns of sections
+      const col = i % 2;
       const row = Math.floor(i / 2);
 
       newNodes.push({
@@ -322,31 +330,31 @@ export default function ConfiguratorPage() {
         label: sec.name,
         color: "#2563EB",
         gradeLevel: sec.gradeLevel,
-        neighborhood: neighbor,
+        neighborhood: sec.roomNumber ? `قاعة ${sec.roomNumber}` : neighbor,
         roomNumber: sec.roomNumber,
-        teachersCount: 2,
+        teachersCount: 1,
         studentsCount: sec.enrolledCount,
         parentsCount: sec.enrolledCount,
-        assignedTeachers: ["الأستاذ سامي العتيبي", "الأستاذة نورة الشمري"],
-        assignedStudents: ["فهد عبدالعزيز", "خالد عبدالله", "ريم محمد", "سارة خالد", "عمر راشد"],
+        assignedTeachers: sec.classTeacherName ? [sec.classTeacherName] : [],
+        assignedStudents: [],
       });
     });
 
     // 2. Buses (Right Column) - clean alignment
-    busRoutes.slice(0, 3).forEach((bus, i) => {
+    busRoutes.forEach((bus, i) => {
       const bid = `bus_${bus.id}`;
       const neighbor = NEIGHBORHOODS[i % NEIGHBORHOODS.length];
       newNodes.push({
         id: bid, type: "bus",
         x: 750, y: 50 + i * 190,
-        label: bus.routeName.replace("مسار ", "حافلة "),
+        label: bus.routeName,
         color: "#D97706",
         neighborhood: neighbor,
         studentsCount: bus.assignedStudentsCount,
         teachersCount: 0,
         parentsCount: 0,
         assignedTeachers: [],
-        assignedStudents: ["أحمد صالح", "زياد سعد", "لمى خالد"],
+        assignedStudents: [],
         driverName: bus.driverName,
         plateNumber: bus.plateNumber,
       });
@@ -367,8 +375,8 @@ export default function ConfiguratorPage() {
     setZoom(0.9);
     setPan({ x: 30, y: 30 });
     setSelectedId(null);
-    showToast("تم بناء المخطط النظيف 🌟", "تم تحويل كل فصل إلى (كارت HTML فائق الوضوح) بدون أي تداخل نصوص، وربطه بالحافلة الموافقة لحيه السكني!", "success");
-  };
+    showToast("تحديث المخطط", "تم توزيع الشعب وخطوط النقل المسجلة في المدرسة على المخطط بنجاح.", "success");
+  }, [sections, busRoutes, showToast]);
 
   const handleSaveCanvas = () => {
     void saveConfiguratorCanvas({
@@ -379,6 +387,7 @@ export default function ConfiguratorPage() {
       filters: { gradeFilter, sortBy },
       saved_at: new Date().toISOString(),
     });
+    showToast("حفظ المخطط", "تم حفظ المخطط الحالي بنجاح في قاعدة بيانات المدرسة.", "success");
   };
 
   const loadSavedCanvas = () => {
@@ -392,7 +401,7 @@ export default function ConfiguratorPage() {
     const savedNodes = payload?.nodes;
 
     if (!canvasConfig?.exists || !Array.isArray(savedNodes)) {
-      showToast("Canvas API", "No saved live canvas config is available yet.", "warning");
+      showToast("تنبيه المخطط", "لا يوجد مخطط محفوظ مسبقاً، يمكنك البدء بالسحب أو التوليد التلقائي.", "warning");
       return;
     }
 
@@ -405,47 +414,61 @@ export default function ConfiguratorPage() {
     if (payload?.filters?.gradeFilter) setGradeFilter(payload.filters.gradeFilter);
     if (payload?.filters?.sortBy) setSortBy(payload.filters.sortBy);
     setSelectedId(null);
-    showToast("Canvas loaded", "Saved dashboard canvas config was restored.", "success");
+    showToast("استعادة المخطط", "تم استرجاع المخطط المحفوظ بنجاح.", "success");
   };
 
   useEffect(() => {
-    if (nodes.length === 0 && mainTab === "canvas") {
+    if (nodes.length === 0 && mainTab === "canvas" && sections.length > 0) {
       loadFromData();
     }
-  }, [mainTab]);
+  }, [mainTab, sections.length, loadFromData, nodes.length]);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     setZoom(z => Math.min(1.8, Math.max(0.4, z - e.deltaY * 0.001)));
   };
 
+  if (!mounted) {
+    return (
+      <div className="dashboard-shell">
+        <Sidebar />
+        <div className="main-content">
+          <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
+            جاري تهيئة مخطط هيكل المدرسة...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-shell">
       <Sidebar />
       <div className="main-content" style={{ overflow: "hidden" }}>
         
-        {/* ── Top Level Directional Header & Tabs ──────────────────────── */}
+        {/* ── Top Level Header & Tabs ──────────────────────── */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "12px 24px", borderBottom: "1px solid var(--border)",
+          padding: "14px 24px", borderBottom: "1px solid var(--border)",
           background: "var(--bg-surface)", flexWrap: "wrap", gap: 12,
           boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 42, height: 42, borderRadius: 12,
-              background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+              background: "linear-gradient(135deg, var(--primary), #1e83bb)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 4px 14px rgba(37,99,235,0.25)"
+              boxShadow: "0 4px 14px rgba(23,107,154,0.2)"
             }}>
               <Network size={22} color="#fff" />
             </div>
             <div>
-              <div style={{ fontWeight: 900, fontSize: 17, color: "var(--text-dark)", display: "flex", alignItems: "center", gap: 8 }}>
-                مركز تأسيس وتكوين المدرسة
-                <span className="badge badge-green" style={{ fontSize: 10 }}>HTML/CSS Clean Layout 4.0</span>
+              <div style={{ fontWeight: 900, fontSize: 17, color: "var(--text-dark)" }}>
+                مركز تأسيس وتكوين هيكل المدرسة
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>تصميم بطاقات نقي تماماً بدون تداخل نصوص، مع أزرار حذف وربط مباشرة وواضحة!</div>
+              <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                توزيع وتسكين الفصول والكوادر التعليمية وخطوط النقل المدرسي
+              </div>
             </div>
           </div>
 
@@ -460,7 +483,7 @@ export default function ConfiguratorPage() {
               style={{ padding: "8px 18px", fontSize: 13, fontWeight: 800, gap: 8, borderRadius: 10 }}
             >
               <CheckSquare size={16} />
-              1️⃣ مسار إدراج الموارد (الأساسيات المتدرجة)
+              مسار إدراج الموارد الأساسية
             </button>
             <button
               onClick={() => { setMainTab("canvas"); if (nodes.length === 0) loadFromData(); }}
@@ -468,7 +491,7 @@ export default function ConfiguratorPage() {
               style={{ padding: "8px 18px", fontSize: 13, fontWeight: 800, gap: 8, borderRadius: 10 }}
             >
               <Network size={16} />
-              2️⃣ مسار التكوين والربط البصري (Diagram)
+              مخطط التوزيع والربط البصري
             </button>
           </div>
         </div>
@@ -752,11 +775,11 @@ export default function ConfiguratorPage() {
           </div>
         )}
 
-        {/* ── TAB 2: ULTRA-CLEAN DOM/HTML DIAGRAM CANVAS (Zero Overlap!) ── */}
+        {/* ── TAB 2: DIAGRAM CANVAS ── */}
         {mainTab === "canvas" && (
           <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 134px)", overflow: "hidden" }}>
             
-            {/* 🌟 SMART FILTERS & PROGRESSIVE BUILDING BAR */}
+            {/* 🌟 SMART FILTERS & CONTROLS BAR */}
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               padding: "10px 20px", background: "var(--bg-page)", borderBottom: "1px solid var(--border)",
@@ -764,63 +787,51 @@ export default function ConfiguratorPage() {
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-dark)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Filter size={15} color="var(--primary)" /> التكوين المتدرج والتصفية حسب المستوى:
+                  <Filter size={15} color="var(--primary)" /> تصفية الشعب حسب المرحلة:
                 </span>
                 <div style={{ display: "flex", gap: 4, background: "var(--bg-surface)", padding: 3, borderRadius: 8, border: "1px solid var(--border)" }}>
-                  {[
-                    { id: "all", label: "🏢 عرض المدرسة كاملة" },
-                    { id: "الصف الرابع", label: "4️⃣ الصف الرابع" },
-                    { id: "الصف الخامس", label: "5️⃣ الصف الخامس" },
-                    { id: "الصف السادس", label: "6️⃣ الصف السادس" },
-                  ].map((g) => (
+                  <button
+                    onClick={() => setGradeFilter("all")}
+                    style={{
+                      padding: "6px 14px", borderRadius: 6, fontSize: 11.5, fontWeight: 800,
+                      border: "none", cursor: "pointer",
+                      background: gradeFilter === "all" ? "var(--primary)" : "transparent",
+                      color: gradeFilter === "all" ? "#fff" : "var(--text-dark)",
+                      transition: "all 0.15s", boxShadow: gradeFilter === "all" ? "0 2px 6px rgba(23,107,154,0.25)" : "none"
+                    }}
+                  >
+                    عرض الكل ({sections.length})
+                  </button>
+                  {availableGradeLevels.map((grade) => (
                     <button
-                      key={g.id}
-                      onClick={() => setGradeFilter(g.id)}
+                      key={grade}
+                      onClick={() => setGradeFilter(grade)}
                       style={{
                         padding: "6px 14px", borderRadius: 6, fontSize: 11.5, fontWeight: 800,
                         border: "none", cursor: "pointer",
-                        background: gradeFilter === g.id ? "var(--primary)" : "transparent",
-                        color: gradeFilter === g.id ? "#fff" : "var(--text-dark)",
-                        transition: "all 0.15s", boxShadow: gradeFilter === g.id ? "0 2px 6px rgba(37,99,235,0.25)" : "none"
+                        background: gradeFilter === grade ? "var(--primary)" : "transparent",
+                        color: gradeFilter === grade ? "#fff" : "var(--text-dark)",
+                        transition: "all 0.15s", boxShadow: gradeFilter === grade ? "0 2px 6px rgba(23,107,154,0.25)" : "none"
                       }}
                     >
-                      {g.label}
+                      {grade}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-dark)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <MapPin size={15} color="#D97706" /> ترتيب وتجميع الحافلات:
-                </span>
-                <select
-                  className="form-select" style={{ width: 220, fontSize: 11.5, fontWeight: 700, padding: "5px 10px" }}
-                  value={sortBy} onChange={(e: any) => setSortBy(e.target.value)}
-                >
-                  <option value="default">⚡ الترتيب الافتراضي للنظام</option>
-                  <option value="neighborhood">📍 تجميع حسب الحي السكني (لتقريب النقل)</option>
-                  <option value="name">🔤 الترتيب الأبجدي حسب الاسم</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Step-by-Step Guidance Banner */}
-            <div style={{ background: "#EFF6FF", padding: "8px 20px", borderBottom: "1px solid #BFDBFE", fontSize: 11.5, color: "#1E40AF", display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 700 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Sparkles size={16} color="#2563EB" />
-                <span>💡 <strong>كيف تبني بسهولة وبدون لخبطة؟</strong> (1) اختر المستوى من الشريط فوق ➔ (2) اربط الفصل بالحافلة من القائمة المنسدلة أسفل الكارت ➔ (3) لحذف أي عنصر اضغط زر (✕ حذف) في زاويته العليا!</span>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button onClick={handleSaveCanvas} className="btn btn-sm" style={{ background: "#fff", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 800, padding: "2px 10px" }}>
-                  <Save size={13} /> حفظ المخطط
-                </button>
-                <button onClick={loadSavedCanvas} className="btn btn-sm" style={{ background: "#fff", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 800, padding: "2px 10px" }}>
-                  <Download size={13} /> تحميل المحفوظ
-                </button>
-                <button onClick={loadFromData} className="btn btn-sm" style={{ background: "#fff", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 800, padding: "2px 10px" }}>
-                  🔄 إعادة ترتيب الكروت بانتظام
-                </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={handleSaveCanvas} className="btn btn-sm btn-outline">
+                    <Save size={13} /> حفظ المخطط
+                  </button>
+                  <button onClick={loadSavedCanvas} className="btn btn-sm btn-ghost">
+                    <Download size={13} /> استعادة المحفوظ
+                  </button>
+                  <button onClick={loadFromData} className="btn btn-sm btn-primary">
+                    <Sparkles size={13} /> إعادة توزيع تلقائي
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -831,14 +842,14 @@ export default function ConfiguratorPage() {
               <div style={{ width: 240, flexShrink: 0, borderLeft: "1px solid var(--border)", background: "var(--bg-surface)", display: "flex", flexDirection: "column" }}>
                 <div style={{ display: "flex", borderBottom: "1px solid var(--border)", background: "var(--bg-page)" }}>
                   {[
-                    { id: "sections", label: `🏛️ الشعب الدراسية (${filteredSections.length})` },
-                    { id: "buses", label: `🚌 خطوط النقل` },
+                    { id: "sections", label: `الشعب الدراسية (${filteredSections.length})` },
+                    { id: "buses", label: `خطوط الحافلات (${busRoutes.length})` },
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveToolboxTab(tab.id as any)}
                       style={{
-                        flex: 1, padding: "10px 4px", fontSize: 11, fontWeight: 800,
+                        flex: 1, padding: "10px 4px", fontSize: 11.5, fontWeight: 800,
                         border: "none", background: activeToolboxTab === tab.id ? "var(--bg-surface)" : "transparent",
                         color: activeToolboxTab === tab.id ? "var(--primary)" : "var(--text-muted)",
                         borderBottom: activeToolboxTab === tab.id ? "2px solid var(--primary)" : "none",
@@ -851,8 +862,8 @@ export default function ConfiguratorPage() {
                 </div>
 
                 <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5, background: "#F8FAFC", padding: 10, borderRadius: 8, border: "1px solid var(--border)", marginBottom: 6 }}>
-                    👈 <strong>اسحب الفصل وافلته في أرضية الرسم:</strong> سيظهر كارت منظم يحتوي على أعداد الطلاب والمعلمين وزر الحذف المباشر!
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, background: "var(--bg-page)", padding: 10, borderRadius: 8, border: "1px solid var(--border)", marginBottom: 6 }}>
+                    👈 <strong>اسحب العنصر إلى ساحة المخطط:</strong> لإدراجه وتوصيل مسارات النقل والكادر التعليمي.
                   </div>
 
                   {activeToolboxTab === "sections" && (
@@ -870,9 +881,9 @@ export default function ConfiguratorPage() {
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontSize: 13, fontWeight: 900, color: "#1D4ED8" }}>{sec.name}</span>
-                            <span className="badge badge-blue" style={{ fontSize: 10 }}>👥 {sec.enrolledCount}</span>
+                            <span className="badge badge-blue" style={{ fontSize: 10 }}>{sec.enrolledCount} طالب</span>
                           </div>
-                          <div style={{ fontSize: 10.5, color: "#64748B", fontWeight: 600 }}>قاعة {sec.roomNumber} • 👨‍🏫 2 معلمين</div>
+                          <div style={{ fontSize: 10.5, color: "#64748B", fontWeight: 600 }}>قاعة {sec.roomNumber || "—"} • مربي الفصل: {sec.classTeacherName || "غير محدد"}</div>
                         </div>
                       ))}
                     </>
@@ -885,17 +896,17 @@ export default function ConfiguratorPage() {
                           key={bus.id} draggable
                           onDragStart={e => {
                             e.dataTransfer.setData("nodeType", "bus");
-                            e.dataTransfer.setData("nodeLabel", bus.routeName.replace("مسار ", "حافلة "));
+                            e.dataTransfer.setData("nodeLabel", bus.routeName);
                             e.dataTransfer.setData("nodeNeighbor", NEIGHBORHOODS[idx % NEIGHBORHOODS.length]);
                             e.dataTransfer.setData("nodeCount", bus.assignedStudentsCount.toString());
                           }}
                           style={{ padding: "12px", borderRadius: 12, background: "#FFFBEB", border: "1.5px solid #FDE68A", cursor: "grab", marginBottom: 6, boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                            <span style={{ fontSize: 13, fontWeight: 900, color: "#B45309" }}>{bus.routeName.replace("مسار ", "حافلة ")}</span>
-                            <span className="badge badge-orange" style={{ fontSize: 10 }}>👥 {bus.assignedStudentsCount}</span>
+                            <span style={{ fontSize: 13, fontWeight: 900, color: "#B45309" }}>{bus.routeName}</span>
+                            <span className="badge badge-orange" style={{ fontSize: 10 }}>{bus.assignedStudentsCount} راكب</span>
                           </div>
-                          <div style={{ fontSize: 10.5, color: "#92400E", fontWeight: 600 }}>📍 {NEIGHBORHOODS[idx % NEIGHBORHOODS.length]} • السائق: {bus.driverName.split(" ")[0]}</div>
+                          <div style={{ fontSize: 10.5, color: "#92400E", fontWeight: 600 }}>السائق: {bus.driverName || "—"} • اللوحة: {bus.plateNumber || "—"}</div>
                         </div>
                       ))}
                     </>
@@ -903,7 +914,7 @@ export default function ConfiguratorPage() {
                 </div>
               </div>
 
-              {/* 🌟 INTERACTIVE HTML/DOM CANVAS (100% Zero Text Overlap!) */}
+              {/* 🌟 INTERACTIVE HTML/DOM CANVAS */}
               <div
                 ref={containerRef}
                 className="canvas-bg"
@@ -947,13 +958,15 @@ export default function ConfiguratorPage() {
                 {nodes.length === 0 && (
                   <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none", gap: 16, zIndex: 5 }}>
                     <div style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)", border: "2px dashed #CBD5E1", borderRadius: 20, padding: "36px 48px", textAlign: "center", maxWidth: 460, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
-                      <div style={{ fontSize: 48, marginBottom: 12 }}>✨</div>
-                      <div style={{ fontWeight: 900, fontSize: 18, color: "#1E293B", marginBottom: 8 }}>مخطط التكوين جاهز للبناء النظيف</div>
-                      <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.7, marginBottom: 20 }}>
-                        تم القضاء نهائياً على تداخل النصوص! كل كارت الآن هو عنصر HTML حقيقي يحتوي على أزرار حذف وربط مباشرة من القائمة المنسدلة.
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>🏛️</div>
+                      <div style={{ fontWeight: 900, fontSize: 18, color: "var(--text-dark)", marginBottom: 8 }}>
+                        مخطط الهيكل التنظيمي للمدرسة
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 20 }}>
+                        يمكنك سحب الفصول وخطوط الحافلات من القائمة الجانبية أو توليد المخطط التلقائي من بيانات المدرسة المسجلة حالياً.
                       </div>
                       <button style={{ pointerEvents: "auto" }} onClick={loadFromData} className="btn btn-primary">
-                        <Download size={16} /> توليد الهيكل النظيف الآن
+                        <Sparkles size={16} /> توليد المخطط من بيانات المدرسة
                       </button>
                     </div>
                   </div>
