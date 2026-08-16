@@ -287,31 +287,23 @@ export default function MessagesPage() {
                 </div>
                 <div className="card-body">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>عنوان الرسالة</label>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">عنوان الرسالة</label>
                       <input
                         required
                         type="text"
+                        className="form-input"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="مثال: تنبيه بموعد الانصراف المبكر..."
-                        style={{
-                          width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                          padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                          background: "var(--bg-page)", color: "var(--text-dark)",
-                        }}
                       />
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>الفئة المستهدفة</label>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">الفئة المستهدفة</label>
                       <select
+                        className="form-select"
                         value={target}
                         onChange={(e) => setTarget(e.target.value)}
-                        style={{
-                          width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                          padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                          background: "var(--bg-page)", color: "var(--text-dark)", cursor: "pointer",
-                        }}
                       >
                         <option>جميع أولياء الأمور</option>
                         <option>الصف الخامس / شعبة أ</option>
@@ -321,16 +313,12 @@ export default function MessagesPage() {
                         <option>جميع المعلمين</option>
                       </select>
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>نوع الرسالة</label>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">نوع الرسالة</label>
                       <select
+                        className="form-select"
                         value={type}
                         onChange={(e) => setType(e.target.value as any)}
-                        style={{
-                          width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                          padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                          background: "var(--bg-page)", color: "var(--text-dark)", cursor: "pointer",
-                        }}
                       >
                         <option value="تعميم">تعميم رسمي (إداري)</option>
                         <option value="تنبيه">تنبيه هام أو عاجل</option>
@@ -338,19 +326,15 @@ export default function MessagesPage() {
                       </select>
                     </div>
                   </div>
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>نص الرسالة</label>
+                  <div className="form-group">
+                    <label className="form-label">نص الرسالة</label>
                     <textarea
                       required
                       rows={3}
+                      className="form-textarea"
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
                       placeholder="اكتب نص الرسالة هنا ليصل إلى المستهدفين عبر إشعارات التطبيق..."
-                      style={{
-                        width: "100%", border: "1px solid var(--border)", borderRadius: "var(--radius)",
-                        padding: "10px 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-                        background: "var(--bg-page)", color: "var(--text-dark)", resize: "vertical",
-                      }}
                     />
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
@@ -461,32 +445,32 @@ export default function MessagesPage() {
 
                 {/* Add Event Inline Form */}
                 {showAddEvent && (
-                  <form onSubmit={handleAddEvent} style={{ marginTop: 18, paddingTop: 18, borderTop: "1px dashed var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>عنوان الفعالية أو الموعد</label>
-                      <input required type="text" placeholder="مثال: مجلس الآباء والمعلمين للفصل الدراسي الثاني" value={eventTitle} onChange={e => setEventTitle(e.target.value)} style={{ width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }} />
+                  <form onSubmit={handleAddEvent} style={{ marginTop: 18, paddingTop: 18, borderTop: "1px dashed var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <div className="form-group">
+                      <label className="form-label">عنوان الفعالية أو الموعد</label>
+                      <input required type="text" className="form-input" placeholder="مثال: مجلس الآباء والمعلمين للفصل الدراسي الثاني" value={eventTitle} onChange={e => setEventTitle(e.target.value)} />
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>تصنيف الفعالية</label>
-                      <select value={eventCategory} onChange={e => setEventCategory(e.target.value as any)} style={{ width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }}>
+                    <div className="form-group">
+                      <label className="form-label">تصنيف الفعالية</label>
+                      <select className="form-select" value={eventCategory} onChange={e => setEventCategory(e.target.value as any)}>
                         <option value="قياس واختبارات">قياس واختبارات معيارية</option>
                         <option value="مجالس آباء">مجالس الآباء واللقاءات</option>
                         <option value="رحلات وفعاليات">رحلات وفعاليات طلابية</option>
                         <option value="عطلات إدارية">عطلات وتطوير مهني</option>
                       </select>
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>التاريخ والموعد</label>
+                    <div className="form-group">
+                      <label className="form-label">التاريخ والموعد</label>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <input required type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} style={{ flex: 1, height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }} />
-                        <input type="text" placeholder="09:00 صباحاً" value={eventTime} onChange={e => setEventTime(e.target.value)} style={{ flex: 1, height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }} />
+                        <input required type="date" className="form-input" value={eventDate} onChange={e => setEventDate(e.target.value)} style={{ flex: 1.2 }} />
+                        <input type="text" className="form-input" placeholder="09:00 صباحاً" value={eventTime} onChange={e => setEventTime(e.target.value)} style={{ flex: 0.8 }} />
                       </div>
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-light)", display: "block", marginBottom: 6 }}>المكان والجمهور المستهدف</label>
+                    <div className="form-group">
+                      <label className="form-label">المكان والجمهور المستهدف</label>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <input type="text" placeholder="المكان (مثال: قاعة المحاضرات)" value={eventLocation} onChange={e => setEventLocation(e.target.value)} style={{ flex: 1, height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }} />
-                        <input type="text" placeholder="المستهدفون (مثال: جميع أولياء الأمور)" value={eventTarget} onChange={e => setEventTarget(e.target.value)} style={{ flex: 1, height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "0 12px", fontSize: 13, background: "var(--bg-page)", color: "var(--text-dark)" }} />
+                        <input type="text" className="form-input" placeholder="المكان (مثال: المسرح)" value={eventLocation} onChange={e => setEventLocation(e.target.value)} style={{ flex: 1 }} />
+                        <input type="text" className="form-input" placeholder="المستهدفون (مثال: أولياء الأمور)" value={eventTarget} onChange={e => setEventTarget(e.target.value)} style={{ flex: 1 }} />
                       </div>
                     </div>
                     <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>

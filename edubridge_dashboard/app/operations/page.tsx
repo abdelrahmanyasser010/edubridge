@@ -242,31 +242,31 @@ export default function OperationsPage() {
                   <span className="badge badge-blue">⚡ تصل للمعلم في التطبيق</span>
                 </div>
                 <div className="card-body">
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 6 }}>المعلم الغائب / المجاز</label>
-                    <select value={selectedAbsentId} onChange={(e) => setSelectedAbsentId(e.target.value)} style={inputStyle}>
+                  <div className="form-group">
+                    <label className="form-label">المعلم الغائب / المجاز</label>
+                    <select className="form-select" value={selectedAbsentId} onChange={(e) => setSelectedAbsentId(e.target.value)}>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.name} ({t.specialization})</option>)}
                     </select>
                   </div>
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 6 }}>معلم الانتظار (البديل المكلف)</label>
-                    <select value={selectedSubId} onChange={(e) => setSelectedSubId(e.target.value)} style={inputStyle}>
+                  <div className="form-group">
+                    <label className="form-label">معلم الانتظار (البديل المكلف)</label>
+                    <select className="form-select" value={selectedSubId} onChange={(e) => setSelectedSubId(e.target.value)}>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.name} (النصاب الحالي: {t.lessonsThisWeek} حصة)</option>)}
                     </select>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 6 }}>الفصل الدراسي</label>
-                      <select value={subSection} onChange={(e) => setSubSection(e.target.value)} style={inputStyle}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">الفصل الدراسي</label>
+                      <select className="form-select" value={subSection} onChange={(e) => setSubSection(e.target.value)}>
                         <option>الصف الخامس / شعبة أ</option>
                         <option>الصف الخامس / شعبة ب</option>
                         <option>الصف السادس / شعبة أ</option>
                         <option>الصف السادس / شعبة ب</option>
                       </select>
                     </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 6 }}>رقم الحصة</label>
-                      <select value={subPeriod} onChange={(e) => setSubPeriod(Number(e.target.value))} style={inputStyle}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">رقم الحصة</label>
+                      <select className="form-select" value={subPeriod} onChange={(e) => setSubPeriod(Number(e.target.value))}>
                         {[1, 2, 3, 4, 5, 6, 7].map(p => <option key={p} value={p}>الحصة {p}</option>)}
                       </select>
                     </div>
@@ -285,9 +285,3 @@ export default function OperationsPage() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%", height: 38, border: "1px solid var(--border)", borderRadius: "var(--radius)",
-  padding: "0 12px", fontFamily: "Cairo, sans-serif", fontSize: 13, outline: "none",
-  background: "var(--bg-page)", color: "var(--text-dark)",
-};

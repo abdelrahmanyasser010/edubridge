@@ -8,7 +8,8 @@ import { useDashboard } from "@/context/DashboardContext";
 import { CreditCard, FileText, Percent, Plus, RefreshCw, RotateCcw, TrendingUp, Wallet } from "lucide-react";
 
 function money(value: number | undefined, currency = "SAR") {
-  return `${(value ?? 0).toLocaleString("ar-SA")} ${currency}`;
+  const currLabel = currency === "SAR" ? "ر.س" : currency;
+  return `${(value ?? 0).toLocaleString("ar-SA")} ${currLabel}`;
 }
 
 function StatusBadge({ status }: { status?: string | null }) {
@@ -21,7 +22,16 @@ function StatusBadge({ status }: { status?: string | null }) {
           ? "badge-gray"
           : "badge-red";
 
-  return <span className={`badge ${cls}`}>{status ?? "unpaid"}</span>;
+  const label =
+    status === "paid"
+      ? "مسددة بالكامل"
+      : status === "partial"
+        ? "سداد جزئي"
+        : status === "cancelled"
+          ? "ملغاة"
+          : "مستحقة";
+
+  return <span className={`badge ${cls}`}><span className="dot" />{label}</span>;
 }
 
 export default function FinancePage() {
@@ -32,7 +42,6 @@ export default function FinancePage() {
     financeDiscounts,
     financeRefunds,
     students,
-    apiStatus,
     refreshDashboardData,
     createFinanceInvoiceForStudent,
     recordFinancePayment,
@@ -43,7 +52,7 @@ export default function FinancePage() {
   } = useDashboard();
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [financeAmount, setFinanceAmount] = useState("500");
-  const [financeTitle, setFinanceTitle] = useState("Tuition adjustment");
+  const [financeTitle, setFinanceTitle] = useState("رسوم دراسية");
 
   const backendStudents = useMemo(() => students.filter((student) => /^\d+$/.test(student.id)), [students]);
   const effectiveStudentId = selectedStudentId || backendStudents[0]?.id || students[0]?.id || "";
@@ -57,11 +66,11 @@ export default function FinancePage() {
   const overdueAmount = financeSummary?.overdue_amount ?? financeInvoices.reduce((sum, item) => sum + (item.remaining ?? 0), 0);
 
   const handleRefundPayment = (paymentId: string, maxAmount: number | undefined) => {
-    const amountText = window.prompt("Refund amount", String(maxAmount ?? amountValue));
+    const amountText = window.prompt("أدخل مبلغ الاسترداد:", String(maxAmount ?? amountValue));
     if (!amountText) return;
     const refundAmount = Number(amountText);
     if (!Number.isFinite(refundAmount) || refundAmount <= 0) return;
-    const reason = window.prompt("Refund reason", "Parent refund request");
+    const reason = window.prompt("سبب الاسترداد:", "طلب استرداد من ولي الأمر");
     if (!reason) return;
     void createFinanceRefundForPayment(paymentId, refundAmount, reason);
   };
@@ -72,14 +81,14 @@ export default function FinancePage() {
       <div className="main-content">
         <Header
           title="المالية والفواتير"
-          subtitle={`Live source: /dashboard/finance/* - ${apiStatus}`}
+          subtitle="إدارة المطالبات المالية، سداد الرسوم الدراسية، الخصومات والاستردادات المعتمدة"
         />
         <main className="page-body">
           <div className="kpi-grid" style={{ marginBottom: 24 }}>
             {[
               { label: "إجمالي المستحق", value: money(totalDue, currency), icon: <Wallet size={22} />, bg: "#EFF6FF", color: "#176B9A" },
               { label: "إجمالي المحصل", value: money(totalPaid, currency), icon: <CreditCard size={22} />, bg: "#F0FDF4", color: "#16A34A" },
-              { label: "متأخرات", value: money(overdueAmount, currency), icon: <TrendingUp size={22} />, bg: "#FFF7ED", color: "#F59E0B" },
+              { label: "متأخرات ومتبقيات", value: money(overdueAmount, currency), icon: <TrendingUp size={22} />, bg: "#FFF7ED", color: "#F59E0B" },
               { label: "نسبة التحصيل", value: `${financeSummary?.collection_rate ?? 0}%`, icon: <Percent size={22} />, bg: "#F8F4FF", color: "#8B5CF6" },
             ].map((stat) => (
               <div key={stat.label} className="kpi-card">
@@ -92,13 +101,13 @@ export default function FinancePage() {
             ))}
           </div>
 
+          {/* Direct Financial Actions */}
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-header">
               <div>
                 <div className="card-title">إجراءات مالية مباشرة</div>
-                <div className="card-subtitle">POST/PATCH/DELETE /dashboard/finance/*</div>
+                <div className="card-subtitle">إنشاء فواتير دراسية جديدة، تسجيل سداد نقدي أو إلكتروني، وإدراج خصومات للطلاب</div>
               </div>
-              <span className={`badge ${apiStatus === "live" ? "badge-green" : "badge-gray"}`}>{apiStatus}</span>
             </div>
             <div className="card-body">
               <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr", gap: 10, marginBottom: 12 }}>
@@ -108,44 +117,33 @@ export default function FinancePage() {
                   ))}
                 </select>
                 <input className="form-input" value={financeTitle} onChange={(event) => setFinanceTitle(event.target.value)} placeholder="عنوان الفاتورة أو الخصم" />
-                <input className="form-input" type="number" min="1" value={financeAmount} onChange={(event) => setFinanceAmount(event.target.value)} placeholder="المبلغ" />
+                <input className="form-input" type="number" min="1" value={financeAmount} onChange={(event) => setFinanceAmount(event.target.value)} placeholder="المبلغ (ر.س)" />
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button className="btn btn-primary btn-sm" onClick={() => void createFinanceInvoiceForStudent(effectiveStudentId, financeTitle, amountValue)}>
-                  <Plus size={14} /> إنشاء فاتورة
+                  <Plus size={14} /> إنشاء فاتورة جديدة
                 </button>
                 <button
                   className="btn btn-green btn-sm"
                   disabled={!payableInvoice}
                   onClick={() => payableInvoice && void recordFinancePayment(payableInvoice.id, Math.min(amountValue, payableInvoice.remaining ?? payableInvoice.total ?? amountValue))}
                 >
-                  <CreditCard size={14} /> تسجيل دفعة لأول فاتورة مفتوحة
+                  <CreditCard size={14} /> تسجيل دفعة لأول فاتورة مستحقة
                 </button>
                 <button className="btn btn-outline btn-sm" onClick={() => void createFinanceDiscountForStudent(effectiveStudentId, financeTitle, amountValue)}>
-                  <Percent size={14} /> إضافة خصم
+                  <Percent size={14} /> تطبيق خصم للطالب
                 </button>
               </div>
             </div>
           </div>
 
-          {refundablePayment && (
-            <div className="card" style={{ marginBottom: 20, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 13 }}>Live refunds</div>
-                <div style={{ fontSize: 12, color: "var(--text-light)" }}>POST /dashboard/finance/payments/{refundablePayment.id}/refunds</div>
-              </div>
-              <button className="btn btn-outline btn-sm" onClick={() => handleRefundPayment(refundablePayment.id, Math.min(amountValue, refundablePayment.amount ?? amountValue))}>
-                <RotateCcw size={14} /> Refund latest payment
-              </button>
-            </div>
-          )}
-
           <div className="grid-2" style={{ marginBottom: 20 }}>
+            {/* Invoices List */}
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">الفواتير</div>
-                  <div className="card-subtitle">GET /dashboard/finance/invoices</div>
+                  <div className="card-title">سجل الفواتير والمطالبات</div>
+                  <div className="card-subtitle">قائمة الفواتير الصادرة للطلاب وحالة السداد الحالية</div>
                 </div>
                 <button className="btn btn-outline btn-sm" onClick={() => void refreshDashboardData()}>
                   <RefreshCw size={14} /> تحديث
@@ -162,9 +160,9 @@ export default function FinancePage() {
                         <strong>{invoice.invoice_number ?? invoice.id}</strong>
                         <StatusBadge status={invoice.status} />
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--text-light)" }}>{invoice.student_name ?? "طالب غير محدد"} - {invoice.parent_name ?? "ولي أمر غير محدد"}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-light)" }}>{invoice.student_name ?? "طالب غير محدد"} {invoice.parent_name ? `— ${invoice.parent_name}` : ""}</div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 5 }}>
-                        الإجمالي: {money(invoice.total, invoice.currency ?? currency)} - المتبقي: {money(invoice.remaining, invoice.currency ?? currency)}
+                        الإجمالي: {money(invoice.total, invoice.currency ?? currency)} — المتبقي: {money(invoice.remaining, invoice.currency ?? currency)}
                       </div>
                       {invoice.status !== "cancelled" && (
                         <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => void cancelFinanceInvoice(invoice.id)}>
@@ -174,34 +172,37 @@ export default function FinancePage() {
                     </div>
                   </div>
                 ))}
-                {financeInvoices.length === 0 && <div style={{ padding: 18, color: "var(--text-light)", fontSize: 13 }}>لا توجد فواتير live محملة بعد.</div>}
+                {financeInvoices.length === 0 && <div style={{ padding: 18, color: "var(--text-light)", fontSize: 13 }}>لا توجد فواتير مسجلة حالياً.</div>}
               </div>
             </div>
 
+            {/* Payments & Discounts & Refunds */}
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">المدفوعات والخصومات</div>
-                  <div className="card-subtitle">GET /dashboard/finance/payments + discounts</div>
+                  <div className="card-title">المدفوعات والخصومات والاسترداد</div>
+                  <div className="card-subtitle">تفاصيل عمليات التحصيل والخصومات الممنوحة والاسترداد المالي</div>
                 </div>
               </div>
               <div style={{ display: "grid", gap: 14 }}>
+                {/* Latest Payments */}
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>آخر المدفوعات</div>
+                  <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>آخر المدفوعات المسددة</div>
                   {financePayments.slice(0, 5).map((payment) => (
                     <div key={payment.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-light)", fontSize: 12.5 }}>
-                      <span>{payment.invoice_number ?? payment.invoice_id}</span>
+                      <span>فاتورة: {payment.invoice_number ?? payment.invoice_id}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <strong>{money(payment.amount, currency)}</strong>
                         <button className="btn btn-ghost btn-sm" onClick={() => handleRefundPayment(payment.id, payment.amount)}>
-                          <RotateCcw size={12} /> Refund
+                          <RotateCcw size={12} /> استرداد
                         </button>
                       </div>
                     </div>
                   ))}
-                  {financePayments.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>لا توجد مدفوعات محملة.</div>}
+                  {financePayments.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>لا توجد مدفوعات مسجلة.</div>}
                 </div>
 
+                {/* Active Discounts */}
                 <div>
                   <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>الخصومات النشطة</div>
                   {financeDiscounts.slice(0, 5).map((discount) => (
@@ -217,21 +218,24 @@ export default function FinancePage() {
                       </div>
                     </div>
                   ))}
-                  {financeDiscounts.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>لا توجد خصومات محملة.</div>}
+                  {financeDiscounts.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>لا توجد خصومات مسجلة.</div>}
                 </div>
 
+                {/* Refunds */}
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>Refunds</div>
+                  <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>عمليات الاسترداد المعتمدة</div>
                   {financeRefunds.slice(0, 5).map((refund) => (
                     <div key={refund.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border-light)", fontSize: 12.5 }}>
                       <span>{refund.reason ?? refund.reference ?? refund.id}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span className="badge badge-blue">{refund.status ?? "created"}</span>
+                        <span className="badge badge-blue">
+                          {refund.status === "completed" ? "مكتمل" : "معتمد"}
+                        </span>
                         <strong>{money(refund.amount, refund.currency ?? currency)}</strong>
                       </div>
                     </div>
                   ))}
-                  {financeRefunds.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>No refunds loaded yet.</div>}
+                  {financeRefunds.length === 0 && <div style={{ color: "var(--text-light)", fontSize: 12 }}>لا توجد عمليات استرداد مسجلة.</div>}
                 </div>
               </div>
             </div>

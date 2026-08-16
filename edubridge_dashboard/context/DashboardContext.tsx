@@ -140,6 +140,13 @@ import {
   updateTransportAssignment as updateTransportAssignmentRequest,
   updateTransportRoute as updateTransportRouteRequest,
   updatePushToken as updatePushTokenRequest,
+  fetchDashboardDailyAttendance,
+  fetchDashboardAttendanceAtRisk,
+  fetchDashboardEarlyWarnings,
+  DashboardDailyAttendanceResponse,
+  DashboardAtRiskAttendanceResponse,
+  DashboardEarlyWarningsResponse,
+  DashboardEarlyWarningItem,
 } from "@/lib/dashboardApi";
 
 // ── Role-Based Access Control (RBAC) Types ───────────────────────
@@ -363,6 +370,12 @@ interface DashboardContextType {
   dashboardAssessments: DashboardAssessment[];
   reportExports: Record<string, DashboardReportExport>;
   canvasConfig: DashboardCanvasConfig | null;
+  dailyAttendance: DashboardDailyAttendanceResponse | null;
+  attendanceAtRisk: DashboardAtRiskAttendanceResponse | null;
+  earlyWarnings: DashboardEarlyWarningsResponse | null;
+  fetchDailyAttendanceByDateAndSection: (date?: string, sectionId?: string, status?: string) => Promise<DashboardDailyAttendanceResponse | null>;
+  fetchAtRiskStudents: (termId: number | string, sectionId?: string) => Promise<DashboardAtRiskAttendanceResponse | null>;
+  fetchEarlyWarningsData: (sectionId?: string, minScore?: number) => Promise<DashboardEarlyWarningsResponse | null>;
   
   // Actions
   showToast: (title: string, message: string, type?: "success" | "info" | "warning" | "error") => void;
@@ -648,6 +661,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [leavePermits, setLeavePermits] = useState<LeavePermit[]>([]);
   const [parentSummons, setParentSummons] = useState<ParentSummons[]>([]);
   const [substitutes, setSubstitutes] = useState<SubstituteAssignment[]>([]);
+  const [dailyAttendance, setDailyAttendance] = useState<DashboardDailyAttendanceResponse | null>(null);
+  const [attendanceAtRisk, setAttendanceAtRisk] = useState<DashboardAtRiskAttendanceResponse | null>(null);
+  const [earlyWarnings, setEarlyWarnings] = useState<DashboardEarlyWarningsResponse | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
 
   // Toast Helper
@@ -704,6 +720,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         calendarEventsResult,
         assessmentsResult,
         canvasConfigResult,
+        dailyAttendanceResult,
+        earlyWarningsResult,
       ] = await Promise.allSettled([
         refreshDashboardIdentity(),
         fetchDashboardSummary(),
@@ -735,6 +753,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         fetchCalendarEvents({ per_page: 100 }),
         fetchDashboardAssessments({ per_page: 100 }),
         fetchCanvasConfig("main-configurator"),
+        fetchDashboardDailyAttendance(),
+        fetchDashboardEarlyWarnings(),
       ] as const);
 
       let successCount = 0;
@@ -801,12 +821,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setTeachers(nextTeachers);
       }
 
+      if (earlyWarningsResult.status === "fulfilled") {
+        successCount += 1;
+        setEarlyWarnings(earlyWarningsResult.value);
+      }
+
+      if (dailyAttendanceResult.status === "fulfilled") {
+        successCount += 1;
+        setDailyAttendance(dailyAttendanceResult.value);
+      }
+
       if (studentsResult.status === "fulfilled") {
         successCount += 1;
+        const warningsList = earlyWarningsResult.status === "fulfilled" ? earlyWarningsResult.value.students : [];
         const nextStudents = mapApiStudents(
           studentsResult.value,
           liveSections ?? [],
           liveParents ?? [],
+          warningsList,
         );
 
         liveStudents = nextStudents;
@@ -1492,14 +1524,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const updatePermission = (roleKey: string, permKey: string, value: boolean) => {
     if (!hasDashboardToken() || !rbacMatrix) {
-      showToast("RBAC", "يلزم اتصال مباشر بالـ API لتعديل الصلاحيات.", "warning");
+      showToast("مصفوفة الصلاحيات", "يلزم اتصال مباشر بالخادم لتعديل الصلاحيات.", "warning");
       return;
     }
 
     const targetRole = rbacMatrix.roles.find((role) => role.key === roleKey);
     const aliases = permissionAliases[permKey as keyof PermissionMatrix[string]] ?? [];
     if (!targetRole || aliases.length === 0) {
-      showToast("RBAC", "تعذر تحديد الدور أو مجموعة الصلاحيات المطلوبة.", "error");
+      showToast("مصفوفة الصلاحيات", "تعذر تحديد الدور أو مجموعة الصلاحيات المطلوبة.", "error");
       return;
     }
 
@@ -1516,19 +1548,27 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         else nextPermissions.delete(permission);
       });
 
+    if (roleKey === "school_admin") {
+      nextPermissions.add("rbac.view");
+      nextPermissions.add("rbac.manage");
+    }
+
+    const validPermissions = Array.from(nextPermissions)
+      .filter((permission) => rbacMatrix.permissions.includes(permission))
+      .sort();
+
     void updateRbacMatrix({
-      roles: rbacMatrix.roles.map((role) => ({
-        key: role.key,
-        permissions:
-          role.key === roleKey
-            ? Array.from(nextPermissions).sort()
-            : Object.entries(role.permissions).filter(([, enabled]) => enabled).map(([permission]) => permission),
-      })),
+      roles: [
+        {
+          key: roleKey,
+          permissions: validPermissions,
+        },
+      ],
     })
       .then((matrix) => {
         setRbacMatrix(matrix);
         setPermissionMatrix(matrixFromBackend(matrix));
-        showToast("تم تحديث الصلاحيات", "تم حفظ التغيير في مصفوفة RBAC بدون حذف الصلاحيات الأخرى للدور.", "success");
+        showToast("تم تحديث الصلاحيات بنجاح ✓", `تم حفظ صلاحيات دور (${targetRole.label || roleKey}) في مصفوفة النظام.`, "success");
       })
       .catch((error) => {
         showToast("تعذر تحديث الصلاحيات", dashboardErrorMessage(error), "error");
@@ -2265,6 +2305,36 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       .catch((error) => { const message = dashboardErrorMessage(error); setApiError(message); showToast("تعذر اعتماد الدرجات", message, "error"); });
   };
 
+  const fetchDailyAttendanceByDateAndSection = useCallback(async (date?: string, sectionId?: string, status?: string) => {
+    try {
+      const res = await fetchDashboardDailyAttendance({ date, section_id: sectionId, status });
+      setDailyAttendance(res);
+      return res;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const fetchAtRiskStudents = useCallback(async (termId: number | string, sectionId?: string) => {
+    try {
+      const res = await fetchDashboardAttendanceAtRisk({ academic_term_id: termId, section_id: sectionId });
+      setAttendanceAtRisk(res);
+      return res;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const fetchEarlyWarningsData = useCallback(async (sectionId?: string, minScore?: number) => {
+    try {
+      const res = await fetchDashboardEarlyWarnings({ section_id: sectionId, min_score: minScore });
+      setEarlyWarnings(res);
+      return res;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const isAuthenticated = Boolean(currentUser && hasDashboardToken());
 
   return (
@@ -2282,6 +2352,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         schoolSettings, schoolIntegrations, auditLogs, rbacRoles, rbacPermissions, rbacMatrix, broadcasts,
         dashboardBehaviorNotes, dashboardLeavePermits, dashboardSchedules, scheduleConflictResult,
         calendarEvents, dashboardAssessments, reportExports, canvasConfig,
+        dailyAttendance, attendanceAtRisk, earlyWarnings,
+        fetchDailyAttendanceByDateAndSection, fetchAtRiskStudents, fetchEarlyWarningsData,
         showToast, removeToast, loginDashboard, logoutDashboard, refreshDashboardData,
         markNotificationRead, updatePushToken, refreshTransportRouteDetails,
         createDashboardTransportRoute, updateDashboardTransportRoute, archiveDashboardTransportRoute,

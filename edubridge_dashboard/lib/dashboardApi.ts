@@ -302,7 +302,9 @@ export interface DashboardTransportRoute {
   supervisor_name?: string | null;
   status?: string | null;
   assigned_students_count?: number;
+  capacity?: number | null;
   estimated_arrival?: string | null;
+  estimatedArrival?: string | null;
   last_location?: { lat: number; lng: number; recorded_at?: string | null } | null;
 }
 
@@ -350,6 +352,75 @@ export interface SchoolSettings {
     sms_enabled?: boolean;
     email_enabled?: boolean;
   };
+}
+
+export interface DashboardDailyAttendanceStudentPeriod {
+  teaching_session_id: string;
+  starts_at: string;
+  ends_at: string;
+  subject_name?: string | null;
+  status: "present" | "absent" | "late" | "excused" | "not_recorded" | string;
+}
+
+export interface DashboardDailyAttendanceStudent {
+  student: { id: string; full_name: string; admission_number?: string | null };
+  section: { id: string; name?: string | null };
+  summary_status: "full_day_absence" | "has_absence" | "excused" | "late" | "complete" | "incomplete" | string;
+  expected_periods: number;
+  recorded_periods: number;
+  present_periods: number;
+  absent_periods: number;
+  late_periods: number;
+  excused_periods: number;
+  periods: DashboardDailyAttendanceStudentPeriod[];
+}
+
+export interface DashboardDailyAttendanceResponse {
+  date: string;
+  summary: {
+    scheduled_sessions: number;
+    fully_recorded_sessions: number;
+    students_with_absence: number;
+    students_with_late: number;
+    students_complete: number;
+    students_incomplete: number;
+  };
+  students: DashboardDailyAttendanceStudent[];
+}
+
+export interface DashboardAtRiskStudent {
+  student: { id: string; full_name: string; admission_number?: string | null };
+  section: { id: string; name?: string | null };
+  unexcused_absent_periods: number;
+  recorded_periods: number;
+  expected_periods: number;
+  attendance_percentage: number | null;
+  warning_threshold: number;
+  reason: string;
+}
+
+export interface DashboardAtRiskAttendanceResponse {
+  policy: {
+    absence_warning_threshold: number;
+    calculation_unit: string;
+  };
+  students: DashboardAtRiskStudent[];
+}
+
+export interface DashboardEarlyWarningItem {
+  student_id: string;
+  version?: string;
+  score: number;
+  reasons: string[];
+  student: { id: string; full_name: string; admission_number?: string | null };
+  section: { id: string | null; name: string | null };
+  level: "high" | "medium" | "low";
+}
+
+export interface DashboardEarlyWarningsResponse {
+  calculation_version: string;
+  calculated_at: string;
+  students: DashboardEarlyWarningItem[];
 }
 
 export interface SchoolIntegration {
@@ -1045,15 +1116,39 @@ export function fetchDashboardBehaviorNotes(params?: {
 }
 
 export function fetchDashboardLeavePermits(params?: {
-  page?: number;
-  per_page?: number;
   status?: string;
   student_id?: string;
   section_id?: string;
   from?: string;
   to?: string;
+  per_page?: number;
 }) {
   return apiRequest<DashboardLeavePermit[]>("/dashboard/leave-permits", { params });
+}
+
+export function fetchDashboardDailyAttendance(params?: {
+  date?: string;
+  section_id?: string;
+  status?: string;
+  q?: string;
+}) {
+  return apiRequest<DashboardDailyAttendanceResponse>("/dashboard/attendance/daily", { params });
+}
+
+export function fetchDashboardAttendanceAtRisk(params: {
+  academic_term_id: number | string;
+  section_id?: string;
+  q?: string;
+}) {
+  return apiRequest<DashboardAtRiskAttendanceResponse>("/dashboard/attendance/at-risk", { params });
+}
+
+export function fetchDashboardEarlyWarnings(params?: {
+  section_id?: string;
+  min_score?: number;
+  q?: string;
+}) {
+  return apiRequest<DashboardEarlyWarningsResponse>("/dashboard/analytics/early-warnings", { params });
 }
 
 export function fetchDashboardSchedules(params?: {
@@ -1683,14 +1778,16 @@ export function mapApiStudents(
   students: BackendStudent[] = [],
   sections: SchoolSection[] = [],
   parents: Parent[] = [],
+  earlyWarnings: DashboardEarlyWarningItem[] = [],
 ): Student[] {
   return students.map((student, index) => {
-    const name = text(student.full_name, text(student.name, "Unnamed student"));
+    const name = text(student.full_name, text(student.name, "طالب"));
     const section = sections.find((item) => item.id === toId(student.section_id));
     const resourceParent = student.parents?.[0];
     const parentId = toId(resourceParent?.id) || toId(student.parent_id);
     const parent = parents.find((item) => item.id === parentId);
-    const parentName = text(resourceParent?.full_name, text(student.parent_name, parent?.name ?? "Unassigned parent"));
+    const parentName = text(resourceParent?.full_name, text(student.parent_name, parent?.name ?? "—"));
+    const warning = earlyWarnings.find((w) => toId(w.student_id) === toId(student.id));
 
     return {
       id: toId(student.id),
@@ -1698,14 +1795,16 @@ export function mapApiStudents(
       name,
       avatarInitials: initials(name),
       avatarColor: avatarColors[index % avatarColors.length],
-      gradeLevel: section?.gradeLevel ?? "Unassigned grade",
+      gradeLevel: section?.gradeLevel ?? "—",
       sectionId: toId(student.section_id),
-      sectionName: section?.name ?? "Unassigned section",
+      sectionName: section?.name ?? "—",
       parentId: parent?.id ?? parentId,
       parentName,
       academicScore: 0,
       attendanceRate: 0,
-      riskLevel: "low",
+      riskLevel: warning ? warning.level : "low",
+      riskScore: warning?.score ?? 0,
+      riskReasons: warning?.reasons ?? [],
     };
   });
 }
@@ -1792,11 +1891,12 @@ export function mapApiTransportRoutes(routes: DashboardTransportRoute[] = []): B
     id: route.id,
     routeName: text(route.route_name, text(route.code, `Route ${route.id}`)),
     plateNumber: text(route.plate_number, "-"),
-    driverName: text(route.driver_name, "Unassigned driver"),
+    driverName: text(route.driver_name, "سائق غير محدد"),
     driverPhone: text(route.driver_phone, ""),
-    supervisorName: text(route.supervisor_name, "Unassigned supervisor"),
+    supervisorName: text(route.supervisor_name, "مشرف غير محدد"),
     status: mapTransportStatus(route.status),
     assignedStudentsCount: route.assigned_students_count ?? 0,
+    capacity: route.capacity ?? 40,
     estimatedArrival: route.estimated_arrival ?? undefined,
   }));
 }

@@ -22,7 +22,7 @@ export default function StudentsPage() {
       s.name.includes(searchTerm) ||
       s.studentCode.includes(searchTerm) ||
       s.parentName.includes(searchTerm);
-    const matchesRisk = apiStatus === "live" || riskFilter === "all" || s.riskLevel === riskFilter;
+    const matchesRisk = riskFilter === "all" || s.riskLevel === riskFilter;
     return matchesSearch && matchesRisk;
   });
 
@@ -65,7 +65,6 @@ export default function StudentsPage() {
                 </div>
                 <select
                   value={riskFilter}
-                  disabled={apiStatus === "live"}
                   onChange={(e) => setRiskFilter(e.target.value)}
                   style={{
                     height: 40, border: "1px solid var(--border)", borderRadius: "var(--radius)",
@@ -73,10 +72,10 @@ export default function StudentsPage() {
                     background: "var(--bg-page)", color: "var(--text-dark)", cursor: "pointer",
                   }}
                 >
-                  <option value="all">{apiStatus === "live" ? "مؤشر المخاطر غير متاح من API" : "جميع الطلاب"}</option>
-                  <option value="high">خطر عالي</option>
-                  <option value="medium">تحت المتابعة</option>
-                  <option value="low">مستقر</option>
+                  <option value="all">جميع مستويات المتابعة</option>
+                  <option value="high">خطر مرتفع (إنذار مبكر)</option>
+                  <option value="medium">تحت المتابعة الدورية</option>
+                  <option value="low">حالة مستقرة</option>
                 </select>
               </div>
               <button onClick={() => setAddModalOpen(true)} className="btn btn-primary">
@@ -84,12 +83,6 @@ export default function StudentsPage() {
               </button>
             </div>
           </div>
-
-          {apiStatus === "live" && (
-            <div className="card" style={{ marginBottom: 20, padding: "12px 16px", borderRight: "4px solid var(--primary)" }}>
-              <div style={{ fontSize: 12.5, color: "var(--text-light)", lineHeight: 1.7 }}>بيانات الطالب الأساسية والربط العائلي حقيقية من الـ API. المعدل الأكاديمي ونسبة الحضور التراكمية ومؤشر المخاطر غير موجودة في StudentResource الحالي، لذلك لا يتم توليد قيم تجريبية لها.</div>
-            </div>
-          )}
 
           {/* Family Linking Panel — only show families with 2+ students */}
           {familiesWithMultiple.length > 0 && (
@@ -207,13 +200,17 @@ export default function StudentsPage() {
                           <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700 }}>{stu.parentName !== "—" ? "ولي أمر مرتبط بالسجل" : "لا يوجد ولي أمر مرتبط"}</div>
                         </td>
                         <td>
-                          {apiStatus === "live" ? <span style={{ color: "var(--text-muted)" }}>—</span> : (
+                          {stu.academicScore > 0 ? (
                             <span style={{ fontWeight: 800, color: stu.academicScore >= 85 ? "var(--green)" : stu.academicScore >= 70 ? "var(--warning)" : "var(--danger)" }}>{stu.academicScore}%</span>
+                          ) : (
+                            <span style={{ color: "var(--text-muted)" }}>—</span>
                           )}
                         </td>
                         <td>
-                          {apiStatus === "live" ? <span style={{ color: "var(--text-muted)" }}>—</span> : (
+                          {stu.attendanceRate > 0 ? (
                             <span style={{ fontWeight: 800, color: stu.attendanceRate >= 90 ? "var(--green)" : "var(--danger)" }}>{stu.attendanceRate}%</span>
+                          ) : (
+                            <span style={{ color: "var(--text-muted)" }}>—</span>
                           )}
                         </td>
                         <td onClick={e => e.stopPropagation()}>
@@ -226,14 +223,10 @@ export default function StudentsPage() {
                           )}
                         </td>
                         <td>
-                          {apiStatus === "live" ? (
-                            <span className="badge badge-gray">غير متاح</span>
-                          ) : (
-                            <span className={`badge ${stu.riskLevel === "high" ? "badge-red" : stu.riskLevel === "medium" ? "badge-orange" : "badge-green"}`}>
-                              <span className="dot" />
-                              {stu.riskLevel === "high" ? "خطر عالي" : stu.riskLevel === "medium" ? "متابعة" : "مستقر"}
-                            </span>
-                          )}
+                          <span className={`badge ${stu.riskLevel === "high" ? "badge-red" : stu.riskLevel === "medium" ? "badge-orange" : "badge-green"}`}>
+                            <span className="dot" />
+                            {stu.riskLevel === "high" ? "خطر مرتفع" : stu.riskLevel === "medium" ? "متابعة" : "مستقر"}
+                          </span>
                         </td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display: "flex", gap: 6 }}>
@@ -244,9 +237,9 @@ export default function StudentsPage() {
                             >
                               <Eye size={14} />
                             </button>
-                            {apiStatus !== "live" && stu.riskLevel === "high" && (
+                            {stu.riskLevel === "high" && (
                               <button
-                                onClick={() => issueParentSummons(stu.id, "تراجع أكاديمي وسلوكي", new Date(Date.now() + 86400000).toISOString().slice(0, 10), "10:00 صباحاً")}
+                                onClick={() => issueParentSummons(stu.id, "متابعة تراجع أكاديمي وسلوكي", new Date(Date.now() + 86400000).toISOString().slice(0, 10), "10:00 صباحاً")}
                                 className="btn btn-primary btn-sm"
                                 style={{ background: "var(--danger)", border: "none", fontSize: 11 }}
                               >

@@ -68,6 +68,8 @@ export interface Student {
   academicScore: number;
   attendanceRate: number;
   riskLevel: "low" | "medium" | "high";
+  riskScore?: number;
+  riskReasons?: string[];
 }
 
 export interface BehaviorNote {
@@ -105,6 +107,7 @@ export interface BusRoute {
   supervisorName: string;
   status: "in_school" | "on_route" | "arrived";
   assignedStudentsCount: number;
+  capacity?: number;
   estimatedArrival?: string;
 }
 

@@ -41,8 +41,8 @@ export default function StudentProfileModal({ student, onClose }: Props) {
   const bus = busRoutes.find(b => b.id === student.busRouteId);
 
   // Risk color
-  const riskColor = apiStatus === "live" ? "var(--text-muted)" : student.riskLevel === "high" ? "var(--danger)" : student.riskLevel === "medium" ? "var(--warning)" : "var(--green)";
-  const riskLabel = apiStatus === "live" ? "غير متاح" : student.riskLevel === "high" ? "خطر عالي" : student.riskLevel === "medium" ? "متابعة" : "مستقر";
+  const riskColor = student.riskLevel === "high" ? "var(--danger)" : student.riskLevel === "medium" ? "var(--warning)" : "var(--green)";
+  const riskLabel = student.riskLevel === "high" ? "خطر مرتفع" : student.riskLevel === "medium" ? "متابعة" : "مستقر";
 
   return (
     <div style={{
@@ -75,7 +75,7 @@ export default function StudentProfileModal({ student, onClose }: Props) {
             <div style={{ display: "flex", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
               <span style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "monospace" }}>{student.studentCode}</span>
               <span className="badge badge-gray" style={{ fontSize: 11 }}>{student.sectionName}</span>
-              <span className={`badge ${apiStatus === "live" ? "badge-gray" : student.riskLevel === "high" ? "badge-red" : student.riskLevel === "medium" ? "badge-orange" : "badge-green"}`}>
+              <span className={`badge ${student.riskLevel === "high" ? "badge-red" : student.riskLevel === "medium" ? "badge-orange" : "badge-green"}`}>
                 <span className="dot" />{riskLabel}
               </span>
             </div>
@@ -90,8 +90,8 @@ export default function StudentProfileModal({ student, onClose }: Props) {
 
           {/* Stats Row */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
-            <StatPill label="المعدل الأكاديمي" value={apiStatus === "live" ? "—" : `${student.academicScore}%`} color={apiStatus === "live" ? "var(--text-muted)" : student.academicScore >= 85 ? "var(--green)" : student.academicScore >= 70 ? "var(--warning)" : "var(--danger)"} />
-            <StatPill label="نسبة الحضور" value={apiStatus === "live" ? "—" : `${student.attendanceRate}%`} color={apiStatus === "live" ? "var(--text-muted)" : student.attendanceRate >= 90 ? "var(--green)" : "var(--danger)"} />
+            <StatPill label="المعدل الأكاديمي" value={student.academicScore > 0 ? `${student.academicScore}%` : "—"} color={student.academicScore >= 85 ? "var(--green)" : student.academicScore >= 70 ? "var(--warning)" : "var(--danger)"} />
+            <StatPill label="نسبة الحضور" value={student.attendanceRate > 0 ? `${student.attendanceRate}%` : "—"} color={student.attendanceRate >= 90 ? "var(--green)" : "var(--danger)"} />
             <StatPill label="الملاحظات السلوكية" value={studentNotes.length} color={studentNotes.length === 0 ? "var(--green)" : studentNotes.some(n => n.severityLabel === "عالي") ? "var(--danger)" : "var(--warning)"} />
           </div>
 
@@ -107,9 +107,8 @@ export default function StudentProfileModal({ student, onClose }: Props) {
                 { label: "المرحلة الدراسية", value: student.gradeLevel },
                 { label: "الفصل الدراسي", value: student.sectionName },
                 { label: "الرقم المدرسي", value: student.studentCode },
-                { label: "سنة التسجيل", value: apiStatus === "live" ? "—" : "2024 / 2025" },
               ].map((row, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: i < 3 ? "1px solid var(--border-light)" : "none" }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: i < 2 ? "1px solid var(--border-light)" : "none" }}>
                   <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{row.label}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark)" }}>{row.value}</span>
                 </div>
@@ -214,7 +213,7 @@ export default function StudentProfileModal({ student, onClose }: Props) {
             >
               <Phone size={14} /> إرسال إشعار لولي الأمر
             </button>
-            {apiStatus !== "live" && student.riskLevel === "high" && (
+            {student.riskLevel === "high" && (
               <button
                 onClick={() => { issueParentSummons(student.id, "متابعة الأداء الأكاديمي والسلوكي", new Date(Date.now() + 86400000).toISOString().slice(0, 10), "10:00 صباحاً"); onClose(); }}
                 className="btn btn-primary btn-sm"
