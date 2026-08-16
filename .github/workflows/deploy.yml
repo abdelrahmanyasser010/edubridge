@@ -1,0 +1,54 @@
+﻿name: Deploy EduBridge Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: edubridge-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Production VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EDUBRIDGE_VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.EDUBRIDGE_VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          install -m 700 -d "$HOME/.ssh"
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/edubridge_actions"
+          chmod 600 "$HOME/.ssh/edubridge_actions"
+
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy EduBridge
+        env:
+          VPS_HOST: ${{ secrets.EDUBRIDGE_VPS_HOST }}
+          VPS_USER: ${{ secrets.EDUBRIDGE_VPS_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh -T \
+            -i "$HOME/.ssh/edubridge_actions" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=15 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=6 \
+            "$VPS_USER@$VPS_HOST"
