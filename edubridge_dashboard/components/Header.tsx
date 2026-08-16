@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Search, Settings, ShieldCheck, Menu, BookOpen, X, School, PanelRightOpen, PanelRightClose } from "lucide-react";
+import { Bell, Search, Settings, ShieldCheck, Menu, BookOpen, X, School, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
 import StudentProfileModal from "@/components/StudentProfileModal";
 import { Student } from "@/data/mockData";
@@ -130,7 +130,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
         className="glass-sidebar-toggle"
         title={sidebarCollapsed ? "إظهار القائمة الجانبية" : "إخفاء القائمة الجانبية (توسيع الشاشة)"}
       >
-        {sidebarCollapsed ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
+        {sidebarCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         <span style={{ fontSize: 11.5, display: "inline-block" }}>{sidebarCollapsed ? "إظهار القائمة" : "توسيع الشاشة"}</span>
       </button>
 

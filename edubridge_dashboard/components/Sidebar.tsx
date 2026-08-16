@@ -92,7 +92,7 @@ export default function Sidebar() {
             style={{ padding: "5px 7px" }}
             title="إخفاء القائمة الجانبية لتوسيع المساحة"
           >
-            <PanelRightClose size={15} />
+            <ChevronRight size={16} />
           </button>
           {/* Close button for mobile */}
           <button

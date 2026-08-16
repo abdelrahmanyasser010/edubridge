@@ -9,7 +9,7 @@ import {
   Network, Plus, Trash2, ZoomIn, ZoomOut, Maximize,
   AlertTriangle, CheckCircle, Download, Save, Info,
   GraduationCap, Users, Bus, BookOpen, Shield, X,
-  ChevronLeft, Layers, Check, ArrowRight, Sparkles, Filter, Link2,
+  ChevronLeft, ChevronRight, Layers, Check, ArrowRight, Sparkles, Filter, Link2,
   MapPin, SortAsc, HelpCircle, CheckSquare, ListFilter, UserPlus, Phone,
   Settings, ArrowDownRight
 } from "lucide-react";
@@ -62,11 +62,11 @@ function bezierPath(x1: number, y1: number, x2: number, y2: number): string {
 function ConfiguratorContent() {
   const {
     teachers, students, sections, busRoutes, showToast,
-    canvasConfig, saveConfiguratorCanvas,
+    canvasConfig, saveConfiguratorCanvas, sidebarCollapsed, toggleSidebar,
   } = useDashboard();
 
-  // ── Top Level Directional Mode ──────────────────────────────────────────
-  const [mainTab, setMainTab] = useState<"wizard" | "canvas">("canvas");
+  // ── Top Level Directional Mode (Defaults to Wizard) ──────────────────────
+  const [mainTab, setMainTab] = useState<"wizard" | "canvas">("wizard");
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
 
   // ── Canvas State ──────────────────────────────────────────────────────────
@@ -451,6 +451,16 @@ function ConfiguratorContent() {
           boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Desktop Glassy Sidebar Toggle Button */}
+            <button
+              onClick={toggleSidebar}
+              className="glass-sidebar-toggle"
+              title={sidebarCollapsed ? "إظهار القائمة الجانبية" : "إخفاء القائمة الجانبية (توسيع الشاشة)"}
+            >
+              {sidebarCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+              <span style={{ fontSize: 11.5, display: "inline-block" }}>{sidebarCollapsed ? "إظهار القائمة" : "توسيع الشاشة"}</span>
+            </button>
+
             <div style={{
               width: 42, height: 42, borderRadius: 12,
               background: "linear-gradient(135deg, var(--primary), #1e83bb)",
