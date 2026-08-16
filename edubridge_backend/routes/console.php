@@ -173,3 +173,104 @@ if (! function_exists('upsertTenantRow')) {
         return (int) DB::connection('tenant')->table($table)->where($uniqueColumn, $uniqueValue)->value('id');
     }
 }
+
+Artisan::command('edubridge:migrate-tenants', function (): int {
+    $tenants = DB::connection('central')
+        ->table('tenant_connections')
+        ->where('status', 'active')
+        ->orderBy('school_id')
+        ->get();
+
+    if ($tenants->isEmpty()) {
+        $this->warn('No active tenant connections found.');
+
+        return 0;
+    }
+
+    $manager = app(\App\Tenancy\TenantConnectionManager::class);
+
+    foreach ($tenants as $row) {
+        if (! empty($row->secret_ref)) {
+            $this->error(
+                "Tenant school_id={$row->school_id} uses secret_ref, ".
+                'but secret-based database credentials are not implemented yet.'
+            );
+
+            return 1;
+        }
+
+        $options = [];
+
+        if (! empty($row->options)) {
+            $decoded = json_decode((string) $row->options, true);
+
+            if (is_array($decoded)) {
+                $options = $decoded;
+            }
+        }
+
+        $tenant = new \App\Tenancy\Tenant(
+            schoolId: (int) $row->school_id,
+            driver: (string) $row->driver,
+            database: (string) $row->database,
+            host: $row->host ?: null,
+            port: $row->port !== null ? (int) $row->port : null,
+            username: $row->username ?: null,
+            secretRef: $row->secret_ref ?: null,
+            options: $options,
+        );
+
+        $this->info(
+            "Migrating tenant school_id={$tenant->schoolId} ".
+            "database={$tenant->database}"
+        );
+
+        try {
+            $manager->run($tenant, function () use ($row): void {
+                $migrationExit = $this->call('migrate', [
+                    '--database' => 'tenant',
+                    '--path' => 'database/migrations/tenant',
+                    '--force' => true,
+                ]);
+
+                if ($migrationExit !== 0) {
+                    throw new \RuntimeException(
+                        "Tenant migration failed for school_id={$row->school_id}"
+                    );
+                }
+
+                $seedExit = $this->call('db:seed', [
+                    '--database' => 'tenant',
+                    '--class' => \Database\Seeders\Tenant\TenantRbacSeeder::class,
+                    '--force' => true,
+                ]);
+
+                if ($seedExit !== 0) {
+                    throw new \RuntimeException(
+                        "Tenant RBAC seed failed for school_id={$row->school_id}"
+                    );
+                }
+            });
+
+            DB::connection('central')
+                ->table('tenant_connections')
+                ->where('school_id', $tenant->schoolId)
+                ->update([
+                    'migrated_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            $this->info("Tenant {$tenant->schoolId}: OK");
+        } catch (\Throwable $e) {
+            $this->error(
+                "Tenant {$tenant->schoolId}: FAILED - {$e->getMessage()}"
+            );
+
+            return 1;
+        }
+    }
+
+    $this->info('All active tenants migrated successfully.');
+
+    return 0;
+})->purpose('Run production migrations and RBAC updates for all active school tenants');
